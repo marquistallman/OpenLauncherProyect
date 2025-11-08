@@ -1,5 +1,5 @@
 # OpenLauncherProyect
-Minecraft no premium launcher(so lazzy to login in microsoft services), only for educational and research purpouses
+Minecraft no premium launcher, only for educational and research purpouses
 Bassed in KeimaSenpai proyect, Xlauncher, link:https://github.com/KeimaSenpai/XLauncher-Script/tree/main
 
 OpenLauncherProyect - Open Source
