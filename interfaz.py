@@ -178,7 +178,101 @@ def lanzar_launcher():
     versiones_menu = tk.OptionMenu(frame_controles, vers_var, *versiones_lista)
     versiones_menu.config(bg="#3498db", fg="white")
     versiones_menu.pack(pady=10)
-    
+    #mods
+    # ===================== Ventana de MODS =====================
+    def abrir_gestor_mods():
+        win = Toplevel(ventana)
+        win.title("Gestor de Mods")
+        win.geometry("600x500")
+        win.configure(bg="#2c3e50")
+
+        # ===== Lista de Mods instalados =====
+        frame_lista = tk.Frame(win, bg="#2c3e50")
+        frame_lista.pack(fill='both', expand=True, padx=10, pady=10)
+
+        tk.Label(frame_lista, text="Mods instalados:", 
+                bg="#2c3e50", fg="white", font=("Arial", 12, "bold")).pack(anchor='w')
+
+        mods_listbox = tk.Listbox(frame_lista, bg="#34495e", fg="white", width=50, height=15)
+        mods_listbox.pack(side='left', fill='both', expand=True, pady=5)
+
+        scroll_mods = tk.Scrollbar(frame_lista, command=mods_listbox.yview)
+        scroll_mods.pack(side='right', fill='y')
+        mods_listbox.config(yscrollcommand=scroll_mods.set)
+
+        mods_folder = os.path.join(MINECRAFT_DIR, "mods")
+
+        def cargar_mods():
+            mods_listbox.delete(0, tk.END)
+            if not os.path.exists(mods_folder):
+                os.makedirs(mods_folder)
+            for f in os.listdir(mods_folder):
+                if f.endswith(".jar"):
+                    mods_listbox.insert(tk.END, f)
+
+        cargar_mods()
+
+        # ===== Buscar e instalar Mods =====
+        frame_buscar = tk.Frame(win, bg="#2c3e50")
+        frame_buscar.pack(fill='x', padx=10, pady=10)
+
+        tk.Label(frame_buscar, text="Buscar mod en Modrinth:", bg="#2c3e50", fg="white").grid(row=0, column=0, sticky='w')
+        entry_buscar = tk.Entry(frame_buscar, width=40)
+        entry_buscar.grid(row=1, column=0, padx=5, pady=5)
+
+        estado = tk.Label(frame_buscar, text="", bg="#2c3e50", fg="white")
+        estado.grid(row=2, column=0, sticky='w')
+
+        def buscar_mod():
+            nombre = entry_buscar.get().strip()
+            if not nombre:
+                estado.config(text="Ingresa un nombre", fg="yellow")
+                return
+
+            estado.config(text="Buscando...", fg="white")
+            win.update()
+
+            try:
+                from funciones import buscar_mod as api_buscar_mod, instalar_mod_con_dependencias
+
+                resultados = api_buscar_mod(nombre)
+                if not resultados:
+                    estado.config(text="No se encontró ningún mod", fg="red")
+                    return
+
+                mod = resultados[0]  # Tomar el primer resultado
+                project_id = mod["id"]
+
+                # Instalar mod y dependencias
+                instalar_mod_con_dependencias(project_id, vers_var.get())
+                estado.config(text=f"Mod '{mod['title']}' instalado correctamente", fg="#2ecc71")
+                cargar_mods()
+
+            except Exception as e:
+                estado.config(text=f"Error: {str(e)}", fg="red")
+
+        tk.Button(frame_buscar, text="Buscar e instalar", 
+                command=buscar_mod, bg="#3498db", fg="white").grid(row=1, column=1, padx=10)
+
+        # ===== Botón eliminar mod =====
+        def eliminar_mod():
+            sel = mods_listbox.curselection()
+            if not sel:
+                messagebox.showwarning("Error", "Selecciona un mod para eliminar")
+                return
+            mod = mods_listbox.get(sel[0])
+
+            ruta = os.path.join(mods_folder, mod)
+            if os.path.exists(ruta):
+                os.remove(ruta)
+                cargar_mods()
+                messagebox.showinfo("Éxito", f"Mod '{mod}' eliminado")
+
+        tk.Button(win, text="Eliminar Mod Seleccionado",
+                command=eliminar_mod, bg="#e74c3c", fg="white").pack(pady=10)
+    # Botón para abrir el gestor de mods
+    btn_gestor_mods = tk.Button(frame_controles,text="Gestor de Mods",command=abrir_gestor_mods,**estilo_botones)
+    btn_gestor_mods.pack(pady=10)
     # Botón para instalar versiones
     def abrir_ventana_instalacion():
         ventana_instalar = Toplevel()
@@ -200,7 +294,7 @@ def lanzar_launcher():
 
         label_estado = tk.Label(ventana_instalar, text="", bg="#2c3e50", fg="white")
         label_estado.pack(pady=5)
-
+        
         def instalar():
             version = entry_version.get()
             if not version:
@@ -224,10 +318,6 @@ def lanzar_launcher():
             except Exception as e:
                 label_estado.config(text="Error")
                 messagebox.showerror("Error", str(e))
-
-        btn_instalar = tk.Button(ventana_instalar, text="Instalar", command=instalar, **estilo_botones)
-        btn_instalar.pack(pady=10)
-    
     # Funciones para manejar perfiles
     def mostrar_nuevo_perfil():
         ventana_nuevo = Toplevel(ventana)
@@ -359,7 +449,6 @@ def lanzar_launcher():
     for tag, color in [('exito', '#2ecc71'), ('error', '#e74c3c'),
                       ('advertencia', '#f1c40f'), ('info', '#3498db')]:
         txt_mensajes.tag_config(tag, foreground=color)
-
     ventana.mainloop()
 
 if __name__ == "__main__":
