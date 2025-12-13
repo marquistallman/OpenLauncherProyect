@@ -1,0 +1,23 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.35826.135
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "FreeLauncher", "FreeLauncher.pyproj", "{918EB1C2-9B01-4D5E-979E-3E5D496A68FF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{918EB1C2-9B01-4D5E-979E-3E5D496A68FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{918EB1C2-9B01-4D5E-979E-3E5D496A68FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C4DE73BD-88D4-41A9-BF9B-78FC50E8898F}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,201 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{918EB1C2-9B01-4D5E-979E-3E5D496A68FF}|FreeLauncher.pyproj|C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\Window\\Main.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{918EB1C2-9B01-4D5E-979E-3E5D496A68FF}|FreeLauncher.pyproj|solutionrelative:Window\\Main.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918EB1C2-9B01-4D5E-979E-3E5D496A68FF}|FreeLauncher.pyproj|C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\Window\\Componentes.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{918EB1C2-9B01-4D5E-979E-3E5D496A68FF}|FreeLauncher.pyproj|solutionrelative:Window\\Componentes.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918EB1C2-9B01-4D5E-979E-3E5D496A68FF}|FreeLauncher.pyproj|C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\Window\\GestorMods.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{918EB1C2-9B01-4D5E-979E-3E5D496A68FF}|FreeLauncher.pyproj|solutionrelative:Window\\GestorMods.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918EB1C2-9B01-4D5E-979E-3E5D496A68FF}|FreeLauncher.pyproj|C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\Window\\VentanaInstalar.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{918EB1C2-9B01-4D5E-979E-3E5D496A68FF}|FreeLauncher.pyproj|solutionrelative:Window\\VentanaInstalar.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918EB1C2-9B01-4D5E-979E-3E5D496A68FF}|FreeLauncher.pyproj|C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\Window\\Utilidades.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{918EB1C2-9B01-4D5E-979E-3E5D496A68FF}|FreeLauncher.pyproj|solutionrelative:Window\\Utilidades.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918EB1C2-9B01-4D5E-979E-3E5D496A68FF}|FreeLauncher.pyproj|C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\main.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{918EB1C2-9B01-4D5E-979E-3E5D496A68FF}|FreeLauncher.pyproj|solutionrelative:main.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918EB1C2-9B01-4D5E-979E-3E5D496A68FF}|FreeLauncher.pyproj|C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\Window\\Perfiles.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{918EB1C2-9B01-4D5E-979E-3E5D496A68FF}|FreeLauncher.pyproj|solutionrelative:Window\\Perfiles.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918EB1C2-9B01-4D5E-979E-3E5D496A68FF}|FreeLauncher.pyproj|C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\interfaz.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{918EB1C2-9B01-4D5E-979E-3E5D496A68FF}|FreeLauncher.pyproj|solutionrelative:interfaz.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918EB1C2-9B01-4D5E-979E-3E5D496A68FF}|FreeLauncher.pyproj|C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\funciones.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{918EB1C2-9B01-4D5E-979E-3E5D496A68FF}|FreeLauncher.pyproj|solutionrelative:funciones.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918EB1C2-9B01-4D5E-979E-3E5D496A68FF}|FreeLauncher.pyproj|C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\perfiles.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{918EB1C2-9B01-4D5E-979E-3E5D496A68FF}|FreeLauncher.pyproj|solutionrelative:perfiles.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918EB1C2-9B01-4D5E-979E-3E5D496A68FF}|FreeLauncher.pyproj|C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\build.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{918EB1C2-9B01-4D5E-979E-3E5D496A68FF}|FreeLauncher.pyproj|solutionrelative:build.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Main.py",
+              "DocumentMoniker": "C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\Window\\Main.py",
+              "RelativeDocumentMoniker": "Window\\Main.py",
+              "ToolTip": "C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\Window\\Main.py",
+              "RelativeToolTip": "Window\\Main.py",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2025-12-01T03:25:32.415Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "GestorMods.py",
+              "DocumentMoniker": "C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\Window\\GestorMods.py",
+              "RelativeDocumentMoniker": "Window\\GestorMods.py",
+              "ToolTip": "C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\Window\\GestorMods.py",
+              "RelativeToolTip": "Window\\GestorMods.py",
+              "ViewState": "AgIAAF0AAAAAAAAAAAAAAHcAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2025-12-01T03:02:53.19Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Componentes.py",
+              "DocumentMoniker": "C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\Window\\Componentes.py",
+              "RelativeDocumentMoniker": "Window\\Componentes.py",
+              "ToolTip": "C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\Window\\Componentes.py",
+              "RelativeToolTip": "Window\\Componentes.py",
+              "ViewState": "AgIAADMAAAAAAAAAAAAAAD0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2025-12-01T03:02:31.789Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "build.py",
+              "DocumentMoniker": "C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\build.py",
+              "RelativeDocumentMoniker": "build.py",
+              "ToolTip": "C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\build.py",
+              "RelativeToolTip": "build.py",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2025-06-09T20:22:40.707Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "perfiles.py",
+              "DocumentMoniker": "C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\perfiles.py",
+              "RelativeDocumentMoniker": "perfiles.py",
+              "ToolTip": "C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\perfiles.py",
+              "RelativeToolTip": "perfiles.py",
+              "ViewState": "AgIAAHUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2025-06-09T20:22:17.972Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "funciones.py",
+              "DocumentMoniker": "C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\funciones.py",
+              "RelativeDocumentMoniker": "funciones.py",
+              "ToolTip": "C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\funciones.py",
+              "RelativeToolTip": "funciones.py",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAHAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2025-06-09T20:16:43.233Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "interfaz.py",
+              "DocumentMoniker": "C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\interfaz.py",
+              "RelativeDocumentMoniker": "interfaz.py",
+              "ToolTip": "C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\interfaz.py",
+              "RelativeToolTip": "interfaz.py",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAmAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2025-06-09T20:16:24.212Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "main.py",
+              "DocumentMoniker": "C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\main.py",
+              "RelativeDocumentMoniker": "main.py",
+              "ToolTip": "C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\main.py",
+              "RelativeToolTip": "main.py",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2025-05-26T23:59:33.084Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Perfiles.py",
+              "DocumentMoniker": "C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\Window\\Perfiles.py",
+              "RelativeDocumentMoniker": "Window\\Perfiles.py",
+              "ToolTip": "C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\Window\\Perfiles.py",
+              "RelativeToolTip": "Window\\Perfiles.py",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2025-12-01T03:03:37.368Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "VentanaInstalar.py",
+              "DocumentMoniker": "C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\Window\\VentanaInstalar.py",
+              "RelativeDocumentMoniker": "Window\\VentanaInstalar.py",
+              "ToolTip": "C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\Window\\VentanaInstalar.py",
+              "RelativeToolTip": "Window\\VentanaInstalar.py",
+              "ViewState": "AgIAACcAAAAAAAAAAAAAAC8AAAAsAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2025-12-01T03:03:14.745Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Utilidades.py",
+              "DocumentMoniker": "C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\Window\\Utilidades.py",
+              "RelativeDocumentMoniker": "Window\\Utilidades.py",
+              "ToolTip": "C:\\Users\\davir\\OneDrive\\Documentos\\cosas david\\FreeLauncher\\Window\\Utilidades.py",
+              "RelativeToolTip": "Window\\Utilidades.py",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2025-12-01T03:03:50.489Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
