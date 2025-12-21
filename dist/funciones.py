@@ -3,7 +3,10 @@ import subprocess
 import os
 import requests
 import hashlib
+import zipfile
+import json
 from tkinter import messagebox
+import re
 from tkinter import Tk, Text
 
 MINECRAFT_DIR = os.path.join(os.getenv("APPDATA"), ".minecraftLauncher")
@@ -91,7 +94,91 @@ def instalar_fabric(version):
         messagebox.showerror("Error", "¡Sin conexión a Internet!")
     except Exception as e:
         messagebox.showerror("Error", f"Error en Fabric:\n{e}")
+import requests
 
+def buscar_mod(nombre):
+    url = f"https://api.modrinth.com/v2/search?query={nombre}"
+    try:
+        r = requests.get(url)
+        r.raise_for_status()  # Lanza excepción si status != 200
+        data = r.json()
+        hits = data.get("hits", [])
+        return hits
+    except requests.RequestException as e:
+        print(f"Error de conexión a Modrinth: {e}")
+        return []
+    except ValueError:
+        print(f"Respuesta inválida al buscar mod '{nombre}'")
+        return []
+
+def obtener_versiones_mod(project_id, mc_version):
+    url = f"https://api.modrinth.com/v2/project/{project_id}/version"
+    try:
+        r = requests.get(url)
+        r.raise_for_status()
+        versiones = r.json()
+        compatibles = []
+        for v in versiones:
+            if mc_version in v.get("game_versions", []) and "fabric" in v.get("loaders", []):
+                compatibles.append(v)
+        return compatibles
+    except requests.RequestException as e:
+        print(f"Error de conexión a Modrinth para el proyecto {project_id}: {e}")
+        return []
+    except ValueError:
+        print(f"Respuesta inválida al obtener versiones del proyecto {project_id}")
+        return []
+    return compatibles
+def descargar_archivo(url, output_path):
+    r = requests.get(url, stream=True)
+    r.raise_for_status()  # Lanza excepción si falla la conexión
+    with open(output_path, "wb") as f:
+        for chunk in r.iter_content(chunk_size=8192):
+            f.write(chunk)
+    if not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
+        raise Exception(f"Error al descargar {output_path}")
+def descargar_dependencias(version_data, mods_folder, mc_version):
+    for dep in version_data["dependencies"]:
+        if dep["dependency_type"] != "required":
+            continue
+
+        project_id = dep["project_id"]
+
+        # obtener la mejor versión
+        versiones = obtener_versiones_mod(project_id, mc_version)
+        if not versiones:
+            print(f"No hay versión compatible para: {project_id}")
+            continue
+
+        archivo = versiones[0]["files"][0]
+        filename = archivo["filename"]
+        url = archivo["url"]
+        save_path = os.path.join(mods_folder, filename)
+
+        if not os.path.exists(save_path):
+            descargar_archivo(url, save_path)
+            print(f"⬇ Dependencia instalada: {filename}")
+def instalar_mod(project_id, version, mods_folder):
+    archivo = version["files"][0]
+    filename = archivo["filename"]
+    url = archivo["url"]
+
+    save_path = os.path.join(mods_folder, filename)
+
+    descargar_archivo(url, save_path)
+    print(f"⬇ Mod instalado: {filename}")
+def instalar_mod_con_dependencias(project_id, mc_version, mods_folder=(MINECRAFT_DIR+"\mods")):
+    versiones = obtener_versiones_mod(project_id, mc_version)
+    if not versiones:
+        print("No hay versiones compatibles")
+        return
+    
+    version = versiones[0]  # la más reciente
+
+    descargar_dependencias(version, mods_folder, mc_version)
+    instalar_mod(project_id, version, mods_folder)
+
+    print("✔ Instalación completa")
 def generar_uuid_offline(nombre):
     md5 = hashlib.md5(f"OfflinePlayer:{nombre}".encode()).hexdigest()
     return f"{md5[:8]}-{md5[8:12]}-{md5[12:16]}-{md5[16:20]}-{md5[20:]}"

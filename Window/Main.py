@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, StringVar, messagebox
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+#sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from Window.Componentes import PlaceholderEntry, PlayButton
 from Window.GestorMods import abrir_gestor_mods
 from Window.VentanaInstalar import abrir_ventana_instalacion
