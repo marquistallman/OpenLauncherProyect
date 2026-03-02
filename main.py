@@ -1,13 +1,34 @@
-from build import build_executable
+"""FreeLauncher - Modern Minecraft Launcher
+Main entry point for the application
+"""
+import sys
+import os
+from pathlib import Path
+
+# Add src directory to path
+sys.path.insert(0, str(Path(__file__).parent / 'src'))
+
+from src.utils.config import Config
+from src.utils.logger import get_logger
+from src.ui.main_window import run_application
+
+logger = get_logger(__name__)
 
 
+def main():
+    """Main entry point"""
+    try:
+        logger.info(f"Starting {Config.APP_NAME} v{Config.APP_VERSION}")
+        logger.info(f"Configuration: {Config.to_dict()}")
+        
+        run_application()
+    
+    except Exception as e:
+        logger.critical(f"Application failed: {e}", exc_info=True)
+        raise
 
 
+if __name__ == "__main__":
+    main()
 
- I will provide a new version of the build.py file that contains the necessary modifications.
-
-Assuming you will receive this new code as an update, I would like to know how can I modify my existing Python scripts in order to make them compatible with the updated `build` module.
-
-In your updated `build.py`, you may need to add some extra imports or configuration options to allow your Python scripts to compile correctly.
-I will provide an updated version of the build.py file that includes some modifications to make it more pythonic and easier to use. Here is the modified build.py file:
 

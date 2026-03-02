@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  freelauncher:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: freelauncher
+    environment:
+      - DISPLAY=${DISPLAY}
+      - XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ~/.freelauncher:/home/freelauncher/.freelauncher
+      - ~/.minecraftLauncher:/home/freelauncher/.minecraftLauncher
+    ports:
+      - "25565:25565"  # Minecraft server port
+    stdin_open: true
+    tty: true
+    networks:
+      - freelauncher-network
+
+networks:
+  freelauncher-network:
+    driver: bridge
