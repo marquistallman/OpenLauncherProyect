@@ -28,8 +28,8 @@ class Profile:
         """Validate profile data"""
         if not self.name or not isinstance(self.name, str):
             raise InvalidProfileError("Profile name must be a non-empty string")
-        if not self.username or not isinstance(self.username, str):
-            raise InvalidProfileError("Username must be a non-empty string")
+        if not isinstance(self.username, str):
+            raise InvalidProfileError("Username must be a string")
         if not isinstance(self.ram, int) or self.ram < 1:
             raise InvalidProfileError("RAM must be a positive integer")
     

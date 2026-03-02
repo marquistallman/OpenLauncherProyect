@@ -5,6 +5,7 @@ from typing import Optional
 
 from ..core.profile_manager import ProfileService, JsonProfileRepository, Profile
 from ..core.minecraft_launcher import MinecraftManager
+from ..core.mod_manager import ModManager
 from ..utils.config import Config
 from ..utils.logger import get_logger
 from ..utils.exceptions import MinecraftLaunchError
@@ -13,6 +14,8 @@ from .components import (
     PlaceholderEntry, PlayButton, StatusBar
 )
 from .profile_dialogs import NewProfileDialog, EditProfileDialog, DeleteProfileDialog
+from .version_manager_dialog import VersionManagerDialog
+from .mod_manager_dialog import ModManagerDialog
 
 logger = get_logger(__name__)
 
@@ -169,6 +172,7 @@ class MainWindow(tk.Tk):
         # Initialize services
         self.profile_service = ProfileService(JsonProfileRepository())
         self.minecraft_manager = MinecraftManager()
+        self.mod_manager = ModManager()
         
         self._build_ui()
         self._check_prequisites()
@@ -238,7 +242,28 @@ class MainWindow(tk.Tk):
         
         ThemedLabel(quick_frame, text="RAM:").pack(side=tk.LEFT, padx=(0, 5))
         self.quick_ram = PlaceholderEntry(quick_frame, placeholder="GB")
-        self.quick_ram.pack(side=tk.LEFT, fill=tk.X, expand=False, width=50)
+        self.quick_ram.pack(side=tk.LEFT, expand=False, padx=(0, 10))
+        
+        # Managers section
+        managers_label = ThemedLabel(content, text="Gestores", font=('Arial', 11, 'bold'))
+        managers_label.pack(anchor='w', pady=(15, 5))
+        
+        managers_frame = ThemedFrame(content)
+        managers_frame.pack(fill=tk.X, pady=(0, 20))
+        
+        version_mgr_btn = ThemedButton(
+            managers_frame,
+            text="📥 Versiones",
+            command=lambda: VersionManagerDialog(self, self.minecraft_manager.version_manager, self._on_version_installed)
+        )
+        version_mgr_btn.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 5))
+        
+        mod_mgr_btn = ThemedButton(
+            managers_frame,
+            text="🔍 Mods",
+            command=lambda: ModManagerDialog(self, self.mod_manager, self._on_mod_installed)
+        )
+        mod_mgr_btn.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(5, 0))
         
         # Play button
         PlayButton(content, command=self._launch_game).pack(pady=20)
@@ -313,6 +338,17 @@ class MainWindow(tk.Tk):
         except Exception as e:
             logger.error(f"Unexpected error during launch: {e}")
             messagebox.showerror("Error", f"Unexpected error: {str(e)}")
+    
+    def _on_version_installed(self, version: str) -> None:
+        """Called when a new version is installed"""
+        logger.info(f"Version installed: {version}")
+        self.version_selector._refresh_versions()
+        self.status_bar.set_status(f"Versión {version} instalada", "success")
+    
+    def _on_mod_installed(self, mod_name: str) -> None:
+        """Called when a mod is installed"""
+        logger.info(f"Mod installed: {mod_name}")
+        self.status_bar.set_status(f"Mod {mod_name} instalado", "success")
     
     def _on_game_closed(self) -> None:
         """Called when game closes"""

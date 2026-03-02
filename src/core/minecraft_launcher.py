@@ -42,6 +42,100 @@ class MinecraftVersionManager:
             logger.error(f"Error getting installed versions: {e}")
             return []
     
+    def get_available_versions(self) -> List[str]:
+        """
+        Get list of available Minecraft versions to download
+        
+        Returns:
+            List of available version strings
+        """
+        try:
+            index = minecraft_launcher_lib.utils.get_version_list()
+            # index can be either a dict with 'versions' key or a list directly
+            if isinstance(index, dict) and 'versions' in index:
+                return [v['id'] for v in index['versions']]
+            elif isinstance(index, list):
+                return [v['id'] for v in index]
+            else:
+                logger.warning("Unexpected version list format")
+                return []
+        except Exception as e:
+            logger.error(f"Error fetching available versions: {e}")
+            return []
+    
+    def categorize_versions(self, versions: List[str]) -> dict:
+        """
+        Categorize versions by type (Release, Snapshot, Alpha, Classic, etc.)
+        
+        Args:
+            versions: List of version strings
+        
+        Returns:
+            Dict with categories as keys and version lists as values
+        """
+        categories = {
+            'Releases': [],
+            'Snapshots': [],
+            'Alphas': [],
+            'Betas': [],
+            'Classic': [],
+            'Pre-releases': []
+        }
+        
+        for version in versions:
+            if version.startswith('a'):
+                categories['Alphas'].append(version)
+            elif version.startswith('b'):
+                categories['Betas'].append(version)
+            elif version.startswith('c'):
+                categories['Classic'].append(version)
+            elif 'w' in version and version[0].isdigit():  # Snapshots like 23w45a
+                categories['Snapshots'].append(version)
+            elif '-pre' in version or '-rc' in version:
+                categories['Pre-releases'].append(version)
+            elif version[0].isdigit():  # Releases like 1.20.1
+                categories['Releases'].append(version)
+        
+        # Sort each category
+        for category in categories.values():
+            category.sort(reverse=True)
+        
+        return categories
+    
+    def download_version(
+        self,
+        version: str,
+        progress_callback: Optional[Callable[[int, int], None]] = None
+    ) -> bool:
+        """
+        Download and install a specific Minecraft version
+        
+        Args:
+            version: Version to download
+            progress_callback: Optional callback(downloaded, total) for progress tracking
+        
+        Returns:
+            True if successful
+        """
+        try:
+            logger.info(f"Starting download of Minecraft {version}")
+            
+            #Get version manifest
+            version_manifest = minecraft_launcher_lib.utils.get_version(version)
+            
+            # Download version
+            minecraft_launcher_lib.install.install_minecraft_version(
+                version,
+                self.minecraft_dir
+            )
+            
+            logger.info(f"Successfully downloaded Minecraft {version}")
+            return True
+        
+        except Exception as e:
+            logger.error(f"Error downloading version {version}: {e}")
+            return False
+    
     def verify_version_installation(self, version: str) -> bool:
         """
         Verify if a specific version is installed

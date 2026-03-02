@@ -22,7 +22,7 @@ class ProfileDialog(Toplevel):
     def __init__(self, parent, title: str = "Profile Dialog"):
         super().__init__(parent)
         self.title(title)
-        self.geometry("350x200")
+        self.geometry("450x400")
         self.configure(bg=Config.COLORS['primary'])
         self.resizable(False, False)
         
@@ -58,39 +58,56 @@ class NewProfileDialog(ProfileDialog):
     
     def _build_ui(self) -> None:
         """Build the dialog UI"""
-        # Frame for inputs
-        frame = ThemedFrame(self)
-        frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
+        # Main frame with scrollable content
+        content_frame = ThemedFrame(self)
+        content_frame.pack(fill=tk.BOTH, expand=True, padx=0, pady=0)
+        
+        # Inputs area  
+        input_frame = ThemedFrame(content_frame)
+        input_frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
+        
+        # Title
+        title = ThemedLabel(input_frame, text="Crear Nuevo Perfil", font=('Arial', 12, 'bold'))
+        title.pack(anchor='w', pady=(0, 15))
         
         # Profile name
-        ThemedLabel(frame, text="Profile Name:").pack(anchor='w', pady=(0, 5))
-        self.name_entry = PlaceholderEntry(frame, placeholder="e.g., Vanilla")
+        ThemedLabel(input_frame, text="Nombre del Perfil:").pack(anchor='w', pady=(0, 5))
+        self.name_entry = PlaceholderEntry(input_frame, placeholder="e.g., Vanilla")
         self.name_entry.pack(fill=tk.X, pady=(0, 10))
         
         # Username
-        ThemedLabel(frame, text="Minecraft Username:").pack(anchor='w', pady=(0, 5))
-        self.username_entry = PlaceholderEntry(frame, placeholder="e.g., Steve")
+        ThemedLabel(input_frame, text="Usuario de Minecraft:").pack(anchor='w', pady=(0, 5))
+        self.username_entry = PlaceholderEntry(input_frame, placeholder="e.g., Steve")
         self.username_entry.pack(fill=tk.X, pady=(0, 10))
         
         # RAM
-        ThemedLabel(frame, text="RAM (GB):").pack(anchor='w', pady=(0, 5))
+        ThemedLabel(input_frame, text="RAM (GB):").pack(anchor='w', pady=(0, 5))
         self.ram_var = tk.StringVar(value=str(Config.DEFAULT_RAM_GB))
         ram_spinbox = tk.Spinbox(
-            frame,
+            input_frame,
             from_=1,
             to=32,
             textvariable=self.ram_var,
             bg=Config.COLORS['secondary'],
-            fg=Config.COLORS['white']
+            fg=Config.COLORS['white'],
+            font=('Arial', 10)
         )
-        ram_spinbox.pack(fill=tk.X, pady=(0, 15))
+        ram_spinbox.pack(fill=tk.X, pady=(0, 20))
         
-        # Buttons
-        button_frame = ThemedFrame(self)
-        button_frame.pack(fill=tk.X, padx=15, pady=(0, 15))
+        # Separator/spacer
+        sep = tk.Frame(content_frame, bg=Config.COLORS['secondary'], height=2)
+        sep.pack(fill=tk.X)
         
-        ThemedButton(button_frame, text="Create", command=self._create_profile).pack(side=tk.LEFT, padx=5)
-        ThemedButton(button_frame, text="Cancel", command=self.destroy).pack(side=tk.LEFT, padx=5)
+        # Buttons frame at bottom
+        button_frame = ThemedFrame(content_frame, use_secondary=True)
+        button_frame.pack(fill=tk.X, padx=0, pady=0)
+        
+        create_btn = ThemedButton(button_frame, text="✓ Crear Perfil", command=self._create_profile)
+        create_btn.pack(side=tk.LEFT, padx=10, pady=10, expand=True, fill=tk.BOTH)
+        
+        cancel_btn = ThemedButton(button_frame, text="✗ Cancelar", command=self.destroy)
+        cancel_btn.config(bg=Config.COLORS['danger'])
+        cancel_btn.pack(side=tk.LEFT, padx=10, pady=10, expand=True, fill=tk.BOTH)
     
     def _create_profile(self) -> None:
         """Create the profile"""
@@ -164,41 +181,58 @@ class EditProfileDialog(ProfileDialog):
             self.destroy()
             return
         
-        # Frame for inputs
-        frame = ThemedFrame(self)
-        frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
+        # Main frame
+        content_frame = ThemedFrame(self)
+        content_frame.pack(fill=tk.BOTH, expand=True, padx=0, pady=0)
+        
+        # Inputs area
+        input_frame = ThemedFrame(content_frame)
+        input_frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
+        
+        # Title
+        title = ThemedLabel(input_frame, text=f"Editar Perfil: {self.profile_name}", font=('Arial', 12, 'bold'))
+        title.pack(anchor='w', pady=(0, 15))
         
         # Username
-        ThemedLabel(frame, text="Minecraft Username:").pack(anchor='w', pady=(0, 5))
-        self.username_entry = PlaceholderEntry(frame)
+        ThemedLabel(input_frame, text="Usuario de Minecraft:").pack(anchor='w', pady=(0, 5))
+        self.username_entry = PlaceholderEntry(input_frame)
         self.username_entry.set_text(profile.username)
         self.username_entry.pack(fill=tk.X, pady=(0, 10))
         
         # RAM
-        ThemedLabel(frame, text="RAM (GB):").pack(anchor='w', pady=(0, 5))
+        ThemedLabel(input_frame, text="RAM (GB):").pack(anchor='w', pady=(0, 5))
         self.ram_var = tk.StringVar(value=str(profile.ram))
         ram_spinbox = tk.Spinbox(
-            frame,
+            input_frame,
             from_=1,
             to=32,
             textvariable=self.ram_var,
             bg=Config.COLORS['secondary'],
-            fg=Config.COLORS['white']
+            fg=Config.COLORS['white'],
+            font=('Arial', 10)
         )
         ram_spinbox.pack(fill=tk.X, pady=(0, 10))
         
         # Description
-        ThemedLabel(frame, text="Description (optional):").pack(anchor='w', pady=(0, 5))
-        self.description_entry = PlaceholderEntry(frame)
+        ThemedLabel(input_frame, text="Descripción (opcional):").pack(anchor='w', pady=(0, 5))
+        self.description_entry = PlaceholderEntry(input_frame)
         self.description_entry.set_text(profile.description)
-        self.description_entry.pack(fill=tk.X, pady=(0, 15))
+        self.description_entry.pack(fill=tk.X, pady=(0, 20))
         
-        # Buttons
-        button_frame = ThemedFrame(self)
-        button_frame.pack(fill=tk.X, padx=15, pady=(0, 15))
+        # Separator/spacer
+        sep = tk.Frame(content_frame, bg=Config.COLORS['secondary'], height=2)
+        sep.pack(fill=tk.X)
         
-        ThemedButton(button_frame, text="Save", command=self._update_profile).pack(side=tk.LEFT, padx=5)
-        ThemedButton(button_frame, text="Cancel", command=self.destroy).pack(side=tk.LEFT, padx=5)
+        # Buttons frame at bottom
+        button_frame = ThemedFrame(content_frame, use_secondary=True)
+        button_frame.pack(fill=tk.X, padx=0, pady=0)
+        
+        save_btn = ThemedButton(button_frame, text="✓ Guardar Cambios", command=self._update_profile)
+        save_btn.pack(side=tk.LEFT, padx=10, pady=10, expand=True, fill=tk.BOTH)
+        
+        cancel_btn = ThemedButton(button_frame, text="✗ Cancelar", command=self.destroy)
+        cancel_btn.config(bg=Config.COLORS['danger'])
+        cancel_btn.pack(side=tk.LEFT, padx=10, pady=10, expand=True, fill=tk.BOTH)
     
     def _update_profile(self) -> None:
         """Update the profile"""
@@ -267,24 +301,37 @@ class DeleteProfileDialog(ProfileDialog):
     
     def _build_ui(self) -> None:
         """Build the dialog UI"""
-        # Frame for text
-        frame = ThemedFrame(self)
-        frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
+        # Main frame
+        content_frame = ThemedFrame(self)
+        content_frame.pack(fill=tk.BOTH, expand=True, padx=0, pady=0)
+        
+        # Content area
+        input_frame = ThemedFrame(content_frame)
+        input_frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
+        
+        # Title
+        title = ThemedLabel(input_frame, text="⚠️ Confirmar Eliminación", font=('Arial', 12, 'bold'))
+        title.pack(anchor='w', pady=(0, 15))
         
         # Confirmation message
-        message = f"Are you sure you want to delete profile '{self.profile_name}'?\nThis action cannot be undone."
-        ThemedLabel(frame, text=message, wraplength=300, justify=tk.LEFT).pack(pady=10)
+        message = f"¿Estás seguro de que quieres eliminar el perfil '{self.profile_name}'?\n\nEsta acción NO se puede deshacer."
+        msg_label = ThemedLabel(input_frame, text=message, wraplength=380, justify=tk.LEFT)
+        msg_label.pack(pady=10, expand=True)
         
-        # Buttons
-        button_frame = ThemedFrame(self)
-        button_frame.pack(fill=tk.X, padx=15, pady=(0, 15))
+        # Separator/spacer
+        sep = tk.Frame(content_frame, bg=Config.COLORS['secondary'], height=2)
+        sep.pack(fill=tk.X)
         
-        delete_btn = ThemedButton(button_frame, text="Delete")
+        # Buttons frame at bottom
+        button_frame = ThemedFrame(content_frame, use_secondary=True)
+        button_frame.pack(fill=tk.X, padx=0, pady=0)
+        
+        delete_btn = ThemedButton(button_frame, text="✓ Eliminar", command=self._confirm_delete)
         delete_btn.config(bg=Config.COLORS['danger'])
-        delete_btn.config(command=self._confirm_delete)
-        delete_btn.pack(side=tk.LEFT, padx=5)
+        delete_btn.pack(side=tk.LEFT, padx=10, pady=10, expand=True, fill=tk.BOTH)
         
-        ThemedButton(button_frame, text="Cancel", command=self.destroy).pack(side=tk.LEFT, padx=5)
+        cancel_btn = ThemedButton(button_frame, text="✗ Cancelar", command=self.destroy)
+        cancel_btn.pack(side=tk.LEFT, padx=10, pady=10, expand=True, fill=tk.BOTH)
     
     def _confirm_delete(self) -> None:
         """Confirm and delete the profile"""
