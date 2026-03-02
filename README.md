@@ -4,7 +4,7 @@ A modern, feature-rich Minecraft launcher built with Python using SOLID principl
 
 ![Version](https://img.shields.io/badge/version-2.0.0-blue)
 ![Python](https://img.shields.io/badge/python-3.8+-green)
-![License](https://img.shields.io/badge/license-MIT-blue)
+![License](https://img.shields.io/badge/license-GPL3.0-blue)
 
 ## ✨ Features
 
@@ -189,7 +189,7 @@ mypy src/
 
 ## 📄 License
 
-This project is licensed under the MIT License - see LICENSE file for details
+This project is licensed under the GPL-3.0 License - see LICENSE file for details
 
 ## 🙋 Support
 
