@@ -2,7 +2,8 @@
 import subprocess
 import os
 import hashlib
-from typing import List, Callable, Optional
+from typing import List, Callable, Optional, Dict
+import requests
 
 import minecraft_launcher_lib
 
@@ -63,48 +64,126 @@ class MinecraftVersionManager:
             logger.error(f"Error fetching available versions: {e}")
             return []
     
+    def get_available_versions_with_dates(self) -> List[Dict]:
+        """
+        Get list of available Minecraft versions with release dates
+        
+        Returns:
+            List of dicts with 'id', 'time', and 'type' keys
+        """
+        try:
+            index = minecraft_launcher_lib.utils.get_version_list()
+            versions = []
+            
+            if isinstance(index, dict) and 'versions' in index:
+                versions = index['versions']
+            elif isinstance(index, list):
+                versions = index
+            
+            return versions if versions else []
+        except Exception as e:
+            logger.error(f"Error fetching available versions: {e}")
+            return []
+    
+    
     def categorize_versions(self, versions: List[str]) -> dict:
         """
         Categorize versions by type (Release, Snapshot, Alpha, Classic, etc.)
+        Sorted by release date (newest first)
         
         Args:
             versions: List of version strings
         
         Returns:
-            Dict with categories as keys and version lists as values
+            Dict with categories as keys and version lists as values (sorted by date)
         """
-        categories = {
-            'Releases': [],
-            'Snapshots': [],
-            'Alphas': [],
-            'Betas': [],
-            'Classic': [],
-            'Pre-releases': []
-        }
-        
-        for version in versions:
-            if version.startswith('a'):
-                categories['Alphas'].append(version)
-            elif version.startswith('b'):
-                categories['Betas'].append(version)
-            elif version.startswith('c'):
-                categories['Classic'].append(version)
-            elif 'w' in version and version[0].isdigit():  # Snapshots like 23w45a
-                categories['Snapshots'].append(version)
-            elif '-pre' in version or '-rc' in version:
-                categories['Pre-releases'].append(version)
-            elif version[0].isdigit():  # Releases like 1.20.1
-                categories['Releases'].append(version)
-        
-        # Sort each category
-        for category in categories.values():
-            category.sort(reverse=True)
-        
-        return categories
+        try:
+            # Get version info with dates
+            versions_info = self.get_available_versions_with_dates()
+            version_dates = {v['id']: v.get('time', '') for v in versions_info}
+            
+            categories = {
+                'Releases': [],
+                'Snapshots': [],
+                'Pre-releases': [],
+                'Alphas': [],
+                'Betas': [],
+                'Classic': []
+            }
+            
+            for version in versions:
+                # Snapshots: YYwWWx format (e.g., 23w45a, 24w01a)
+                if len(version) >= 5 and version[0:2].isdigit() and 'w' in version[2:4]:
+                    categories['Snapshots'].append(version)
+                # Pre-releases: X.Y.Z-pre/rc format
+                elif '-pre' in version or '-rc' in version:
+                    categories['Pre-releases'].append(version)
+                # Alphas: a + version
+                elif version.startswith('a'):
+                    categories['Alphas'].append(version)
+                # Betas: b + version
+                elif version.startswith('b'):
+                    categories['Betas'].append(version)
+                # Classic: c + version
+                elif version.startswith('c') or version.startswith('classic'):
+                    categories['Classic'].append(version)
+                # Releases: X.Y or X.Y.Z format (all digits and dots)
+                elif all(c.isdigit() or c == '.' for c in version):
+                    categories['Releases'].append(version)
+            
+            # Sort each category by release date (descending - newest first)
+            def sort_by_date(version_list):
+                try:
+                    return sorted(
+                        version_list,
+                        key=lambda v: version_dates.get(v, '0000-00-00T00:00:00Z'),
+                        reverse=True
+                    )
+                except Exception as e:
+                    logger.warning(f"Error sorting versions: {e}")
+                    return version_list
+            
+            for category in categories.keys():
+                categories[category] = sort_by_date(categories[category])
+            
+            return categories
+        except Exception as e:
+            logger.error(f"Error categorizing versions: {e}")
+            # Fallback to old behavior if something goes wrong
+            categories = {
+                'Releases': [],
+                'Snapshots': [],
+                'Pre-releases': [],
+                'Alphas': [],
+                'Betas': [],
+                'Classic': []
+            }
+            
+            for version in versions:
+                if len(version) >= 5 and version[0:2].isdigit() and 'w' in version[2:4]:
+                    categories['Snapshots'].append(version)
+                elif '-pre' in version or '-rc' in version:
+                    categories['Pre-releases'].append(version)
+                elif version.startswith('a'):
+                    categories['Alphas'].append(version)
+                elif version.startswith('b'):
+                    categories['Betas'].append(version)
+                elif version.startswith('c') or version.startswith('classic'):
+                    categories['Classic'].append(version)
+                elif all(c.isdigit() or c == '.' for c in version):
+                    categories['Releases'].append(version)
+            
+            for category in categories.values():
+                category.sort(reverse=True)
+            
+            return categories
+    
     
     def download_version(
         self,
         version: str,
+        loader: str = "vanilla",
+        loader_version: Optional[str] = None,
         progress_callback: Optional[Callable[[int, int], None]] = None
     ) -> bool:
         """
@@ -112,30 +191,166 @@ class MinecraftVersionManager:
         
         Args:
             version: Version to download
+            loader: Type of loader ('vanilla', 'forge', 'fabric')
+            loader_version: Specific loader version (optional)
             progress_callback: Optional callback(downloaded, total) for progress tracking
         
         Returns:
             True if successful
         """
         try:
-            logger.info(f"Starting download of Minecraft {version}")
+            loader_lower = loader.lower()
+            logger.info(f"Starting download of Minecraft {version} with {loader_lower}")
             
-            #Get version manifest
-            version_manifest = minecraft_launcher_lib.utils.get_version(version)
+            if loader_lower == "vanilla":
+                # Download vanilla version
+                minecraft_launcher_lib.install.install_minecraft_version(
+                    version,
+                    self.minecraft_dir
+                )
             
-            # Download version
-            minecraft_launcher_lib.install.install_minecraft_version(
-                version,
-                self.minecraft_dir
-            )
+            elif loader_lower == "forge":
+                # Try to download Forge
+                try:
+                    # First, install vanilla to have the base version
+                    minecraft_launcher_lib.install.install_minecraft_version(
+                        version,
+                        self.minecraft_dir
+                    )
+                    
+                    # Then try to install Forge using minecraft_launcher_lib if available
+                    if hasattr(minecraft_launcher_lib, 'forge'):
+                        minecraft_launcher_lib.forge.install_forge_version(
+                            version,
+                            self.minecraft_dir,
+                            loader_version
+                        )
+                    else:
+                        logger.warning("Forge installation not directly supported, installing vanilla only")
+                
+                except Exception as forge_error:
+                    logger.warning(f"Could not install Forge directly: {forge_error}")
+                    # Fall back to vanilla only
+                    logger.info("Falling back to vanilla installation")
             
-            logger.info(f"Successfully downloaded Minecraft {version}")
+            elif loader_lower == "fabric":
+                # First, install vanilla to have the base version
+                minecraft_launcher_lib.install.install_minecraft_version(
+                    version,
+                    self.minecraft_dir
+                )
+                
+                # Then install Fabric loader
+                self._download_fabric(version, loader_version)
+            
+            else:
+                logger.error(f"Unknown loader type: {loader}")
+                return False
+            
+            logger.info(f"Successfully downloaded Minecraft {version} with {loader_lower}")
             return True
         
         except Exception as e:
             logger.error(f"Error downloading version {version}: {e}")
             return False
     
+    def _download_fabric(self, minecraft_version: str, fabric_version: Optional[str] = None) -> None:
+        """
+        Download and install Fabric loader
+        
+        Args:
+            minecraft_version: Minecraft version
+            fabric_version: Specific Fabric version (optional)
+        """
+        try:
+            logger.info(f"Installing Fabric for Minecraft {minecraft_version}")
+            
+            # Get latest Fabric loader if not specified
+            if not fabric_version:
+                try:
+                    response = requests.get(
+                        f"https://meta.fabricmc.net/v2/versions/loader/{minecraft_version}",
+                        timeout=10
+                    )
+                    response.raise_for_status()
+                    loaders = response.json()
+                    if loaders and len(loaders) > 0:
+                        fabric_version = loaders[0]['loader']['version']
+                        logger.info(f"Using latest Fabric loader: {fabric_version}")
+                    else:
+                        raise Exception(f"No Fabric versions available for Minecraft {minecraft_version}")
+                except requests.RequestException as e:
+                    logger.error(f"Failed to get Fabric versions: {e}")
+                    raise Exception(f"Could not connect to Fabric metadata server: {e}")
+            
+            # Get game profile
+            game_profile_response = requests.get(
+                f"https://meta.fabricmc.net/v2/versions/loader/{minecraft_version}/{fabric_version}/profile/json",
+                timeout=10
+            )
+            game_profile_response.raise_for_status()
+            
+            # Save the profile
+            profile_path = os.path.join(
+                self.minecraft_dir,
+                'versions',
+                f'{minecraft_version}-fabric'
+            )
+            os.makedirs(profile_path, exist_ok=True)
+            
+            profile_file = os.path.join(profile_path, f'{minecraft_version}-fabric.json')
+            with open(profile_file, 'w') as f:
+                f.write(game_profile_response.text)
+            
+            logger.info(f"Fabric installation completed for {minecraft_version}")
+        
+        except Exception as e:
+            logger.error(f"Error installing Fabric: {e}")
+            raise
+    
+    def get_forge_versions(self, minecraft_version: str) -> List[str]:
+        """
+        Get available Forge versions for a Minecraft version
+        
+        Args:
+            minecraft_version: Minecraft version
+        
+        Returns:
+            List of Forge versions
+        """
+        try:
+            if hasattr(minecraft_launcher_lib, 'forge') and hasattr(minecraft_launcher_lib.forge, 'list_forge_versions'):
+                versions = minecraft_launcher_lib.forge.list_forge_versions(minecraft_version)
+                return versions if versions else []
+            else:
+                logger.warning("Forge version listing not supported in minecraft_launcher_lib")
+                return []
+        except Exception as e:
+            logger.warning(f"Error getting Forge versions: {e}")
+            return []
+    
+    def get_fabric_versions(self, minecraft_version: str) -> List[str]:
+        """
+        Get available Fabric loader versions for a Minecraft version
+        
+        Args:
+            minecraft_version: Minecraft version
+        
+        Returns:
+            List of Fabric versions
+        """
+        try:
+            response = requests.get(
+                f"https://meta.fabricmc.net/v2/versions/loader/{minecraft_version}",
+                timeout=10
+            )
+            response.raise_for_status()
+            loaders = response.json()
+            return [loader['loader']['version'] for loader in loaders] if loaders else []
+        except Exception as e:
+            logger.warning(f"Error getting Fabric versions: {e}")
+            return []
+
     def verify_version_installation(self, version: str) -> bool:
         """
         Verify if a specific version is installed

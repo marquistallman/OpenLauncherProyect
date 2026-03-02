@@ -43,6 +43,8 @@ class VersionManagerDialog(tk.Toplevel):
         self.installed_versions = []
         self.is_downloading = False
         self.search_query = ""
+        self.selected_loader = tk.StringVar(value="vanilla")
+        self.selected_loader_version = tk.StringVar(value="latest")
         
         self._build_ui()
         self._load_versions()
@@ -59,13 +61,19 @@ class VersionManagerDialog(tk.Toplevel):
         header = ThemedFrame(content_frame, use_secondary=True)
         header.pack(fill=tk.X, padx=0, pady=0)
         
-        ThemedLabel(header, text="📥 Descargar Versiones", font=('Arial', 12, 'bold')).pack(pady=10)
+        header_label = ThemedLabel(header, text="📥 Descargar Versiones", font=('Arial', 14, 'bold'))
+        header_label.pack(pady=15, padx=15)
+        
+        # Divider
+        divider = tk.Frame(content_frame, bg=Config.COLORS['accent'], height=2)
+        divider.pack(fill=tk.X, pady=(0, 15))
         
         # Search frame
         search_frame = ThemedFrame(content_frame)
-        search_frame.pack(fill=tk.X, padx=15, pady=(15, 10))
+        search_frame.pack(fill=tk.X, padx=15, pady=(0, 15))
         
-        ThemedLabel(search_frame, text="Buscar versión:", font=('Arial', 9, 'bold')).pack(anchor='w', pady=(0, 5))
+        search_label = ThemedLabel(search_frame, text="🔍 Buscar versión:", font=('Arial', 10, 'bold'))
+        search_label.pack(anchor='w', pady=(0, 8))
         
         search_input = ThemedFrame(search_frame)
         search_input.pack(fill=tk.X)
@@ -79,13 +87,14 @@ class VersionManagerDialog(tk.Toplevel):
         
         # Versions treeview frame
         versions_frame = ThemedFrame(content_frame)
-        versions_frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=(0, 10))
+        versions_frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=(0, 15))
         
-        ThemedLabel(versions_frame, text="Versiones Disponibles:", font=('Arial', 9, 'bold')).pack(anchor='w', pady=(0, 5))
+        versions_label = ThemedLabel(versions_frame, text="📦 Versiones Disponibles:", font=('Arial', 10, 'bold'))
+        versions_label.pack(anchor='w', pady=(0, 8))
         
         # Treeview with scrollbar
         tree_frame = ThemedFrame(versions_frame, use_secondary=True)
-        tree_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+        tree_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 12), padx=2, ipady=5)
         
         scrollbar = ttk.Scrollbar(tree_frame)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
@@ -99,10 +108,23 @@ class VersionManagerDialog(tk.Toplevel):
         self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
         scrollbar.config(command=self.tree.yview)
         
-        # Configure treeview colors
+        # Configure treeview colors and fonts
         style = ttk.Style()
-        style.configure('Treeview', background=Config.COLORS['secondary'], foreground=Config.COLORS['white'])
-        style.configure('Treeview.Heading', background=Config.COLORS['accent'], foreground=Config.COLORS['white'])
+        style.configure('Treeview', 
+                       background=Config.COLORS['secondary'], 
+                       foreground=Config.COLORS['white'],
+                       fieldbackground=Config.COLORS['secondary'],
+                       font=('Arial', 9))
+        style.configure('Treeview.Heading', 
+                       background=Config.COLORS['accent'], 
+                       foreground=Config.COLORS['white'],
+                       font=('Arial', 9, 'bold'))
+        style.map('Treeview', 
+                 background=[('selected', Config.COLORS['accent'])])
+        
+        # Status label
+        self.status_label = ThemedLabel(versions_frame, text="Cargando versiones...", font=('Arial', 9))
+        self.status_label.pack(anchor='w', pady=(0, 0))
         
         # Progress bar
         self.progress_var = tk.DoubleVar()
@@ -113,25 +135,68 @@ class VersionManagerDialog(tk.Toplevel):
             mode='determinate'
         )
         
-        # Status label
-        self.status_label = ThemedLabel(versions_frame, text="Cargando versiones...", font=('Arial', 9))
-        self.status_label.pack(anchor='w', pady=(0, 10))
+        # Loader selection frame
+        loader_frame = ThemedFrame(content_frame)
+        loader_frame.pack(fill=tk.X, padx=15, pady=(15, 0))
+        
+        loader_label = ThemedLabel(loader_frame, text="🔧 Tipo de Instalación:", font=('Arial', 10, 'bold'))
+        loader_label.pack(anchor='w', pady=(0, 8))
+        
+        loader_options_frame = ThemedFrame(loader_frame)
+        loader_options_frame.pack(fill=tk.X)
+        
+        tk.Radiobutton(
+            loader_options_frame,
+            text="📦 Vanilla",
+            variable=self.selected_loader,
+            value="vanilla",
+            bg=Config.COLORS['primary'],
+            fg=Config.COLORS['white'],
+            selectcolor=Config.COLORS['accent'],
+            activebackground=Config.COLORS['secondary'],
+            activeforeground=Config.COLORS['white']
+        ).pack(side=tk.LEFT, padx=(0, 15))
+        
+        tk.Radiobutton(
+            loader_options_frame,
+            text="⚒️ Forge",
+            variable=self.selected_loader,
+            value="forge",
+            bg=Config.COLORS['primary'],
+            fg=Config.COLORS['white'],
+            selectcolor=Config.COLORS['accent'],
+            activebackground=Config.COLORS['secondary'],
+            activeforeground=Config.COLORS['white']
+        ).pack(side=tk.LEFT, padx=(0, 15))
+        
+        tk.Radiobutton(
+            loader_options_frame,
+            text="🧵 Fabric",
+            variable=self.selected_loader,
+            value="fabric",
+            bg=Config.COLORS['primary'],
+            fg=Config.COLORS['white'],
+            selectcolor=Config.COLORS['accent'],
+            activebackground=Config.COLORS['secondary'],
+            activeforeground=Config.COLORS['white']
+        ).pack(side=tk.LEFT)
         
         # Buttons frame
-        sep = tk.Frame(content_frame, bg=Config.COLORS['secondary'], height=2)
-        sep.pack(fill=tk.X)
+        sep = tk.Frame(content_frame, bg=Config.COLORS['accent'], height=2)
+        sep.pack(fill=tk.X, pady=(15, 0))
         
         button_frame = ThemedFrame(content_frame, use_secondary=True)
         button_frame.pack(fill=tk.X, padx=0, pady=0)
         
-        self.download_btn = ThemedButton(button_frame, text="⬇️ Descargar Seleccionado", command=self._download_version)
-        self.download_btn.pack(side=tk.LEFT, padx=10, pady=10, expand=True, fill=tk.BOTH)
+        self.download_btn = ThemedButton(button_frame, text="⬇️  Descargar", command=self._download_version, width=15)
+        self.download_btn.pack(side=tk.LEFT, padx=8, pady=10, expand=True, fill=tk.BOTH)
         
-        refresh_btn = ThemedButton(button_frame, text="🔄 Actualizar Lista", command=self._load_versions)
-        refresh_btn.pack(side=tk.LEFT, padx=10, pady=10, expand=True, fill=tk.BOTH)
+        refresh_btn = ThemedButton(button_frame, text="🔄  Actualizar", command=self._load_versions, width=15)
+        refresh_btn.pack(side=tk.LEFT, padx=8, pady=10, expand=True, fill=tk.BOTH)
         
-        close_btn = ThemedButton(button_frame, text="✗ Cerrar", command=self.destroy)
-        close_btn.pack(side=tk.LEFT, padx=10, pady=10, expand=True, fill=tk.BOTH)
+        close_btn = ThemedButton(button_frame, text="✕  Cerrar", command=self.destroy, width=15)
+        close_btn.pack(side=tk.LEFT, padx=8, pady=10, expand=True, fill=tk.BOTH)
+    
     
     def _load_versions(self) -> None:
         """Load available versions in a separate thread"""
@@ -248,22 +313,30 @@ class VersionManagerDialog(tk.Toplevel):
         self.download_btn.config(state=tk.DISABLED)
         self.progress_bar.pack(fill=tk.X, pady=(0, 5))
         
+        loader = self.selected_loader.get()
+        loader_version = None if self.selected_loader_version.get() == "latest" else self.selected_loader_version.get()
+        
         def download_thread():
             try:
-                self.status_label.config(text=f"Descargando {version}...")
+                loader_text = loader.capitalize()
+                self.status_label.config(text=f"Descargando {version} ({loader_text})...")
                 self.after(0, lambda: self.progress_bar.pack(fill=tk.X, pady=(0, 5)))
                 
-                success = self.version_manager.download_version(version)
+                success = self.version_manager.download_version(
+                    version,
+                    loader=loader,
+                    loader_version=loader_version
+                )
                 
                 if success:
-                    self.after(0, lambda: messagebox.showinfo("Éxito", f"Versión {version} descargada correctamente"))
+                    self.after(0, lambda: messagebox.showinfo("Éxito", f"Versión {version} ({loader_text}) descargada correctamente"))
                     
                     if self.on_installed:
                         self.on_installed(version)
                     
                     self.after(0, self._load_versions)
                 else:
-                    self.after(0, lambda: messagebox.showerror("Error", f"No se pudo descargar {version}"))
+                    self.after(0, lambda: messagebox.showerror("Error", f"No se pudo descargar {version} ({loader_text})"))
             
             except Exception as e:
                 logger.error(f"Download error: {e}")
@@ -273,6 +346,10 @@ class VersionManagerDialog(tk.Toplevel):
                 self.is_downloading = False
                 self.after(0, lambda: self.download_btn.config(state=tk.NORMAL))
                 self.after(0, lambda: self.progress_bar.pack_forget())
+        
+        thread = threading.Thread(target=download_thread, daemon=True)
+        thread.start()
+    
         
         thread = threading.Thread(target=download_thread, daemon=True)
         thread.start()

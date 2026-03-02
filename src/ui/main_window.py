@@ -41,24 +41,25 @@ class ProfileSelector(ThemedFrame):
     
     def _build_ui(self) -> None:
         """Build selector UI"""
-        label = ThemedLabel(self, text="Perfil:")
+        label = ThemedLabel(self, text="👤 Perfil:", font=('Arial', 10, 'bold'))
         label.pack(side=tk.LEFT, padx=(0, 10))
         
         self.combo = ttk.Combobox(
             self,
             textvariable=self.selected_profile,
-            state="readonly"
+            state="readonly",
+            font=('Arial', 9)
         )
         self.combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
         self.combo.bind("<<ComboboxSelected>>", self._on_profile_selected)
         
-        self.new_btn = ThemedButton(self, text="+ New", width=8)
+        self.new_btn = ThemedButton(self, text="➕ Nuevo", width=10)
         self.new_btn.pack(side=tk.LEFT, padx=5)
         
-        self.edit_btn = ThemedButton(self, text="Edit", width=8)
+        self.edit_btn = ThemedButton(self, text="✏️ Editar", width=10)
         self.edit_btn.pack(side=tk.LEFT, padx=5)
         
-        self.delete_btn = ThemedButton(self, text="Delete", width=8)
+        self.delete_btn = ThemedButton(self, text="🗑️ Eliminar", width=10)
         self.delete_btn.pack(side=tk.LEFT, padx=5)
     
     def _refresh_profiles(self) -> None:
@@ -122,17 +123,18 @@ class VersionSelector(ThemedFrame):
     
     def _build_ui(self) -> None:
         """Build version selector UI"""
-        label = ThemedLabel(self, text="Versión de Minecraft:")
+        label = ThemedLabel(self, text="🎯 Versión:", font=('Arial', 10, 'bold'))
         label.pack(side=tk.LEFT, padx=(0, 10))
         
         self.combo = ttk.Combobox(
             self,
             textvariable=self.selected_version,
-            state="readonly"
+            state="readonly",
+            font=('Arial', 9)
         )
         self.combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
         
-        self.refresh_btn = ThemedButton(self, text="Refresh", width=10)
+        self.refresh_btn = ThemedButton(self, text="🔄 Actualizar", width=15)
         self.refresh_btn.pack(side=tk.LEFT, padx=5)
         self.refresh_btn.config(command=self._refresh_versions)
     
@@ -179,19 +181,26 @@ class MainWindow(tk.Tk):
     
     def _build_ui(self) -> None:
         """Build the main window UI"""
-        # Header
+        # Header with improved visual
         header = ThemedFrame(self, use_secondary=True)
-        header.pack(fill=tk.X, pady=10)
+        header.pack(fill=tk.X, pady=0)
         
-        ThemedLabel(header, text=Config.APP_NAME, font=('Arial', 16, 'bold')).pack(pady=10)
+        header_inner = ThemedFrame(header)
+        header_inner.pack(padx=20, pady=20)
         
-        # Main content
+        title_label = ThemedLabel(header_inner, text="🎮 " + Config.APP_NAME, font=('Arial', 18, 'bold'))
+        title_label.pack(pady=(0, 5))
+        
+        subtitle = ThemedLabel(header_inner, text="Modern Minecraft Launcher", font=('Arial', 10))
+        subtitle.pack()
+        
+        # Main content with better spacing
         content = ThemedFrame(self)
-        content.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+        content.pack(fill=tk.BOTH, expand=True, padx=20, pady=15)
         
-        # Profile section
-        profile_label = ThemedLabel(content, text="Perfil", font=('Arial', 11, 'bold'))
-        profile_label.pack(anchor='w', pady=(0, 5))
+        # Profile section with improved styling
+        profile_label = ThemedLabel(content, text="👤 Perfil", font=('Arial', 12, 'bold'))
+        profile_label.pack(anchor='w', pady=(0, 8))
         
         self.profile_selector = ProfileSelector(
             content,
@@ -210,67 +219,83 @@ class MainWindow(tk.Tk):
             command=lambda: self.profile_selector.show_delete_dialog(self)
         )
         
-        # Current profile info
+        # Current profile info with better layout
         info_frame = ThemedFrame(content, use_secondary=True)
-        info_frame.pack(fill=tk.X, pady=(0, 15), padx=10, ipady=10)
+        info_frame.pack(fill=tk.X, pady=(0, 20), padx=12, ipady=15)
         
-        ThemedLabel(info_frame, text="Usuario:", font=('Arial', 9, 'bold')).pack(anchor='w')
-        self.username_label = ThemedLabel(info_frame, text="")
-        self.username_label.pack(anchor='w', padx=(20, 0))
+        # User info on one line
+        user_inner = ThemedFrame(info_frame)
+        user_inner.pack(fill=tk.X, pady=(0, 10))
         
-        ThemedLabel(info_frame, text="RAM:", font=('Arial', 9, 'bold')).pack(anchor='w', pady=(5, 0))
-        self.ram_label = ThemedLabel(info_frame, text="")
-        self.ram_label.pack(anchor='w', padx=(20, 0))
+        ThemedLabel(user_inner, text="📛 Usuario:", font=('Arial', 10, 'bold')).pack(side=tk.LEFT, padx=(0, 10))
+        self.username_label = ThemedLabel(user_inner, text="", font=('Arial', 10))
+        self.username_label.pack(side=tk.LEFT, expand=True)
+        
+        # RAM info on one line
+        ram_inner = ThemedFrame(info_frame)
+        ram_inner.pack(fill=tk.X)
+        
+        ThemedLabel(ram_inner, text="💾 RAM:", font=('Arial', 10, 'bold')).pack(side=tk.LEFT, padx=(0, 10))
+        self.ram_label = ThemedLabel(ram_inner, text="", font=('Arial', 10))
+        self.ram_label.pack(side=tk.LEFT, expand=True)
         
         # Version section
-        version_label = ThemedLabel(content, text="Versión", font=('Arial', 11, 'bold'))
-        version_label.pack(anchor='w', pady=(15, 5))
+        version_label = ThemedLabel(content, text="🎯 Versión de Minecraft", font=('Arial', 12, 'bold'))
+        version_label.pack(anchor='w', pady=(15, 8))
         
         self.version_selector = VersionSelector(content, self.minecraft_manager)
         self.version_selector.pack(fill=tk.X, pady=(0, 20))
         
         # Quick entry fields (optional overrides)
-        quick_label = ThemedLabel(content, text="Sobrescribir (opcional):", font=('Arial', 9))
-        quick_label.pack(anchor='w', pady=(10, 5))
+        quick_label = ThemedLabel(content, text="⚙️ Opciones Avanzadas (opcional):", font=('Arial', 10, 'bold'))
+        quick_label.pack(anchor='w', pady=(10, 8))
         
-        quick_frame = ThemedFrame(content)
-        quick_frame.pack(fill=tk.X, pady=(0, 15))
+        quick_frame = ThemedFrame(content, use_secondary=True)
+        quick_frame.pack(fill=tk.X, pady=(0, 20), padx=12, ipady=10)
         
-        ThemedLabel(quick_frame, text="Usuario:").pack(side=tk.LEFT, padx=(0, 5))
-        self.quick_username = PlaceholderEntry(quick_frame, placeholder="Dejar vacío para usar perfil")
-        self.quick_username.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 10))
+        # User override
+        user_override_frame = ThemedFrame(quick_frame)
+        user_override_frame.pack(fill=tk.X, pady=(0, 8))
+        ThemedLabel(user_override_frame, text="Usuario:", font=('Arial', 9)).pack(side=tk.LEFT, padx=(0, 5))
+        self.quick_username = PlaceholderEntry(quick_frame, placeholder="Dejar vacío para usar el del perfil")
+        self.quick_username.pack(fill=tk.X, padx=(0, 0))
         
-        ThemedLabel(quick_frame, text="RAM:").pack(side=tk.LEFT, padx=(0, 5))
-        self.quick_ram = PlaceholderEntry(quick_frame, placeholder="GB")
-        self.quick_ram.pack(side=tk.LEFT, expand=False, padx=(0, 10))
+        # RAM override
+        ram_override_frame = ThemedFrame(quick_frame)
+        ram_override_frame.pack(fill=tk.X, pady=(8, 0))
+        ThemedLabel(ram_override_frame, text="RAM:", font=('Arial', 9)).pack(side=tk.LEFT, padx=(0, 5))
+        self.quick_ram = PlaceholderEntry(quick_frame, placeholder="GB (dejar vacío para usar el del perfil)")
+        self.quick_ram.pack(fill=tk.X)
         
-        # Managers section
-        managers_label = ThemedLabel(content, text="Gestores", font=('Arial', 11, 'bold'))
-        managers_label.pack(anchor='w', pady=(15, 5))
+        # Managers section with improved layout
+        managers_label = ThemedLabel(content, text="🛠️ Gestores", font=('Arial', 12, 'bold'))
+        managers_label.pack(anchor='w', pady=(20, 8))
         
         managers_frame = ThemedFrame(content)
-        managers_frame.pack(fill=tk.X, pady=(0, 20))
+        managers_frame.pack(fill=tk.X, pady=(0, 25))
         
         version_mgr_btn = ThemedButton(
             managers_frame,
-            text="📥 Versiones",
+            text="📥  Descargar Versiones",
             command=lambda: VersionManagerDialog(self, self.minecraft_manager.version_manager, self._on_version_installed)
         )
-        version_mgr_btn.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 5))
+        version_mgr_btn.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 8))
         
         mod_mgr_btn = ThemedButton(
             managers_frame,
-            text="🔍 Mods",
+            text="🔍  Gestor de Mods",
             command=lambda: ModManagerDialog(self, self.mod_manager, self._on_mod_installed)
         )
-        mod_mgr_btn.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(5, 0))
+        mod_mgr_btn.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(8, 0))
         
-        # Play button
-        PlayButton(content, command=self._launch_game).pack(pady=20)
+        # Play button - bigger and more prominent
+        play_button = PlayButton(content, command=self._launch_game)
+        play_button.pack(pady=(0, 20))
         
         # Status bar
         self.status_bar = StatusBar(self)
         self.status_bar.pack(fill=tk.X, side=tk.BOTTOM)
+    
     
     def _on_profile_changed(self, profile: Profile) -> None:
         """Handle profile selection change"""
