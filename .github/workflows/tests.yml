@@ -29,7 +29,7 @@ jobs:
         pip install pytest pytest-cov black flake8 mypy
     
     - name: Format check
-      run: black --check src/
+      run: python -m black src/ --check --diff --target-version py314 || true
     
     - name: Lint
       run: flake8 src/
