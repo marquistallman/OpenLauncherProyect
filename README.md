@@ -25,24 +25,43 @@ A modern, feature-rich Minecraft launcher built with Python using SOLID principl
 ### Optional
 - **Docker & Docker Compose** (for containerized deployment)
 
-## 🚀 Quick Start
+## 🚀 Installation & Quick Start
 
-### Local Installation
+### ⚡ Fastest Way: Auto-Installer Script
+
+**Windows:**
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/marquistallman/OpenLauncherProyect/main/scripts/install.ps1'))
+```
+
+**Linux/macOS:**
+```bash
+curl -sSL https://raw.githubusercontent.com/marquistallman/OpenLauncherProyect/main/scripts/install.sh | bash
+```
+
+### 🐳 Docker (Recommended for Isolation)
+
+```bash
+docker-compose up -d
+```
+
+### 📦 Traditional Installation
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/freelauncher.git
-   cd freelauncher
+   git clone https://github.com/marquistallman/OpenLauncherProyect.git
+   cd OpenLauncherProyect
    ```
 
 2. **Create virtual environment**
    ```bash
    python -m venv venv
    
-   # On Windows:
+   # Windows:
    .\venv\Scripts\activate
    
-   # On Linux/macOS:
+   # Linux/macOS:
    source venv/bin/activate
    ```
 
@@ -51,27 +70,28 @@ A modern, feature-rich Minecraft launcher built with Python using SOLID principl
    pip install -r requirements.txt
    ```
 
-4. **Run the application**
+4. **Run**
    ```bash
    python main.py
    ```
 
-### Docker Deployment
+### 🛠️ Development Mode
 
-1. **Build the image**
-   ```bash
-   docker build -t freelauncher:latest .
-   ```
+```bash
+# Install dev dependencies
+make dev
 
-2. **Run with docker-compose**
-   ```bash
-   docker-compose up
-   ```
+# Run development server
+make run
 
-3. **Or run with Docker directly**
-   ```bash
-   docker run -it -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix freelauncher:latest
-   ```
+# Run tests
+make test
+
+# Format code
+make format
+```
+
+**For detailed installation instructions, see [DISTRIBUTION.md](DISTRIBUTION.md)**
 
 ## 📁 Project Structure
 

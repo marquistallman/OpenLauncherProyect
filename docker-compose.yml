@@ -5,20 +5,31 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+    image: freelauncher:latest
     container_name: freelauncher
+    restart: unless-stopped
     environment:
       - DISPLAY=${DISPLAY}
       - XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}
+      - PYTHONUNBUFFERED=1
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - ~/.freelauncher:/home/freelauncher/.freelauncher
-      - ~/.minecraftLauncher:/home/freelauncher/.minecraftLauncher
+      - ~/.freelauncher:/root/.freelauncher
+      - ~/.minecraftLauncher:/root/.minecraftLauncher
     ports:
       - "25565:25565"  # Minecraft server port
     stdin_open: true
     tty: true
     networks:
       - freelauncher-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import src.core.minecraft_launcher"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
 
 networks:
   freelauncher-network:

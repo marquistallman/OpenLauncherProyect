@@ -2,6 +2,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, StringVar
 from typing import Optional
+import threading
 
 from ..core.profile_manager import ProfileService, JsonProfileRepository, Profile
 from ..core.minecraft_launcher import MinecraftManager
@@ -11,7 +12,7 @@ from ..utils.logger import get_logger
 from ..utils.exceptions import MinecraftLaunchError
 from .components import (
     ThemedFrame, ThemedLabel, ThemedButton,
-    PlaceholderEntry, PlayButton, StatusBar
+    PlaceholderEntry, PlayButton, StatusBar, ScrollableFrame
 )
 from .profile_dialogs import NewProfileDialog, EditProfileDialog, DeleteProfileDialog
 from .version_manager_dialog import VersionManagerDialog
@@ -41,14 +42,14 @@ class ProfileSelector(ThemedFrame):
     
     def _build_ui(self) -> None:
         """Build selector UI"""
-        label = ThemedLabel(self, text="👤 Perfil:", font=('Arial', 10, 'bold'))
-        label.pack(side=tk.LEFT, padx=(0, 10))
+        label = ThemedLabel(self, text="👤 Perfil:", font=('Segoe UI', 11, 'bold'))
+        label.pack(side=tk.LEFT, padx=(0, 15))
         
         self.combo = ttk.Combobox(
             self,
             textvariable=self.selected_profile,
             state="readonly",
-            font=('Arial', 9)
+            font=('Segoe UI', 10)
         )
         self.combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
         self.combo.bind("<<ComboboxSelected>>", self._on_profile_selected)
@@ -123,14 +124,14 @@ class VersionSelector(ThemedFrame):
     
     def _build_ui(self) -> None:
         """Build version selector UI"""
-        label = ThemedLabel(self, text="🎯 Versión:", font=('Arial', 10, 'bold'))
-        label.pack(side=tk.LEFT, padx=(0, 10))
+        label = ThemedLabel(self, text="🎯 Versión:", font=('Segoe UI', 11, 'bold'))
+        label.pack(side=tk.LEFT, padx=(0, 15))
         
         self.combo = ttk.Combobox(
             self,
             textvariable=self.selected_version,
             state="readonly",
-            font=('Arial', 9)
+            font=('Segoe UI', 10)
         )
         self.combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
         
@@ -167,7 +168,7 @@ class MainWindow(tk.Tk):
         self.title(Config.WINDOW_TITLE)
         self.geometry(f"{Config.WINDOW_WIDTH}x{Config.WINDOW_HEIGHT}")
         self.configure(bg=Config.COLORS['primary'])
-        self.resizable(False, False)
+        self.resizable(True, True)
         
         logger.info("Initializing main window")
         
@@ -188,19 +189,20 @@ class MainWindow(tk.Tk):
         header_inner = ThemedFrame(header)
         header_inner.pack(padx=20, pady=20)
         
-        title_label = ThemedLabel(header_inner, text="🎮 " + Config.APP_NAME, font=('Arial', 18, 'bold'))
+        title_label = ThemedLabel(header_inner, text="🎮 " + Config.APP_NAME, font=('Segoe UI', 22, 'bold'))
         title_label.pack(pady=(0, 5))
         
-        subtitle = ThemedLabel(header_inner, text="Modern Minecraft Launcher", font=('Arial', 10))
+        subtitle = ThemedLabel(header_inner, text="Modern Minecraft Launcher", font=('Segoe UI', 11), fg=Config.COLORS['grey'])
         subtitle.pack()
         
-        # Main content with better spacing
-        content = ThemedFrame(self)
-        content.pack(fill=tk.BOTH, expand=True, padx=20, pady=15)
+        # Main content with scrolling capability
+        scrollable_content = ScrollableFrame(self, bg=Config.COLORS['primary'])
+        scrollable_content.pack(fill=tk.BOTH, expand=True, padx=20, pady=15)
+        content = scrollable_content.scrollable_frame
         
         # Profile section with improved styling
-        profile_label = ThemedLabel(content, text="👤 Perfil", font=('Arial', 12, 'bold'))
-        profile_label.pack(anchor='w', pady=(0, 8))
+        profile_label = ThemedLabel(content, text="👤 PERFIL", font=('Segoe UI', 12, 'bold'))
+        profile_label.pack(anchor='w', pady=(0, 10), padx=5)
         
         self.profile_selector = ProfileSelector(
             content,
@@ -227,49 +229,49 @@ class MainWindow(tk.Tk):
         user_inner = ThemedFrame(info_frame)
         user_inner.pack(fill=tk.X, pady=(0, 10))
         
-        ThemedLabel(user_inner, text="📛 Usuario:", font=('Arial', 10, 'bold')).pack(side=tk.LEFT, padx=(0, 10))
-        self.username_label = ThemedLabel(user_inner, text="", font=('Arial', 10))
+        ThemedLabel(user_inner, text="📛 Usuario:", font=('Segoe UI', 10, 'bold')).pack(side=tk.LEFT, padx=(0, 10))
+        self.username_label = ThemedLabel(user_inner, text="", font=('Segoe UI', 10))
         self.username_label.pack(side=tk.LEFT, expand=True)
         
         # RAM info on one line
         ram_inner = ThemedFrame(info_frame)
         ram_inner.pack(fill=tk.X)
         
-        ThemedLabel(ram_inner, text="💾 RAM:", font=('Arial', 10, 'bold')).pack(side=tk.LEFT, padx=(0, 10))
-        self.ram_label = ThemedLabel(ram_inner, text="", font=('Arial', 10))
+        ThemedLabel(ram_inner, text="💾 RAM:", font=('Segoe UI', 10, 'bold')).pack(side=tk.LEFT, padx=(0, 10))
+        self.ram_label = ThemedLabel(ram_inner, text="", font=('Segoe UI', 10))
         self.ram_label.pack(side=tk.LEFT, expand=True)
         
         # Version section
-        version_label = ThemedLabel(content, text="🎯 Versión de Minecraft", font=('Arial', 12, 'bold'))
-        version_label.pack(anchor='w', pady=(15, 8))
+        version_label = ThemedLabel(content, text="🎯 VERSIÓN DE MINECRAFT", font=('Segoe UI', 12, 'bold'))
+        version_label.pack(anchor='w', pady=(20, 10), padx=5)
         
         self.version_selector = VersionSelector(content, self.minecraft_manager)
         self.version_selector.pack(fill=tk.X, pady=(0, 20))
         
         # Quick entry fields (optional overrides)
-        quick_label = ThemedLabel(content, text="⚙️ Opciones Avanzadas (opcional):", font=('Arial', 10, 'bold'))
-        quick_label.pack(anchor='w', pady=(10, 8))
+        quick_label = ThemedLabel(content, text="⚙️ OPCIONES AVANZADAS (OPCIONAL)", font=('Segoe UI', 12, 'bold'))
+        quick_label.pack(anchor='w', pady=(15, 10), padx=5)
         
         quick_frame = ThemedFrame(content, use_secondary=True)
-        quick_frame.pack(fill=tk.X, pady=(0, 20), padx=12, ipady=10)
+        quick_frame.pack(fill=tk.X, pady=(0, 20), padx=12, ipady=12)
         
         # User override
         user_override_frame = ThemedFrame(quick_frame)
-        user_override_frame.pack(fill=tk.X, pady=(0, 8))
-        ThemedLabel(user_override_frame, text="Usuario:", font=('Arial', 9)).pack(side=tk.LEFT, padx=(0, 5))
+        user_override_frame.pack(fill=tk.X, pady=(0, 10))
+        ThemedLabel(user_override_frame, text="Usuario:", font=('Segoe UI', 10, 'bold')).pack(side=tk.LEFT, padx=(0, 10))
         self.quick_username = PlaceholderEntry(quick_frame, placeholder="Dejar vacío para usar el del perfil")
-        self.quick_username.pack(fill=tk.X, padx=(0, 0))
+        self.quick_username.pack(fill=tk.X, padx=(0, 0), pady=(0, 10))
         
         # RAM override
         ram_override_frame = ThemedFrame(quick_frame)
-        ram_override_frame.pack(fill=tk.X, pady=(8, 0))
-        ThemedLabel(ram_override_frame, text="RAM:", font=('Arial', 9)).pack(side=tk.LEFT, padx=(0, 5))
+        ram_override_frame.pack(fill=tk.X, pady=(0, 0))
+        ThemedLabel(ram_override_frame, text="RAM:", font=('Segoe UI', 10, 'bold')).pack(side=tk.LEFT, padx=(0, 10))
         self.quick_ram = PlaceholderEntry(quick_frame, placeholder="GB (dejar vacío para usar el del perfil)")
         self.quick_ram.pack(fill=tk.X)
         
         # Managers section with improved layout
-        managers_label = ThemedLabel(content, text="🛠️ Gestores", font=('Arial', 12, 'bold'))
-        managers_label.pack(anchor='w', pady=(20, 8))
+        managers_label = ThemedLabel(content, text="🛠️ GESTORES", font=('Segoe UI', 12, 'bold'))
+        managers_label.pack(anchor='w', pady=(20, 10), padx=5)
         
         managers_frame = ThemedFrame(content)
         managers_frame.pack(fill=tk.X, pady=(0, 25))
@@ -279,18 +281,18 @@ class MainWindow(tk.Tk):
             text="📥  Descargar Versiones",
             command=lambda: VersionManagerDialog(self, self.minecraft_manager.version_manager, self._on_version_installed)
         )
-        version_mgr_btn.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 8))
+        version_mgr_btn.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
         
         mod_mgr_btn = ThemedButton(
             managers_frame,
             text="🔍  Gestor de Mods",
             command=lambda: ModManagerDialog(self, self.mod_manager, self._on_mod_installed)
         )
-        mod_mgr_btn.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(8, 0))
+        mod_mgr_btn.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(10, 0))
         
         # Play button - bigger and more prominent
         play_button = PlayButton(content, command=self._launch_game)
-        play_button.pack(pady=(0, 20))
+        play_button.pack(pady=(30, 10), fill=tk.X, padx=80)
         
         # Status bar
         self.status_bar = StatusBar(self)
@@ -348,20 +350,29 @@ class MainWindow(tk.Tk):
                     messagebox.showerror("Error", "RAM must be a valid number")
                     return
             
-            # Launch
+            # Launch in separate thread to avoid blocking UI
             self.status_bar.set_status("Lanzando juego...", "info")
             self.update()
             
-            self.minecraft_manager.launcher.launch(profile, version, self._on_game_closed)
+            def launch_thread():
+                try:
+                    self.minecraft_manager.launcher.launch(profile, version)
+                    self.after(0, lambda: self._on_game_closed())
+                except MinecraftLaunchError as e:
+                    logger.error(f"Launch failed: {e}")
+                    self.after(0, lambda: self.status_bar.set_status("Error al lanzar el juego", "error"))
+                    self.after(0, lambda: messagebox.showerror("Error", str(e)))
+                except Exception as e:
+                    logger.error(f"Unexpected error during launch: {e}")
+                    self.after(0, lambda: messagebox.showerror("Error", f"Unexpected error: {str(e)}"))
+            
+            thread = threading.Thread(target=launch_thread, daemon=True)
+            thread.start()
             
             logger.info(f"Game launched: {profile.username} on {version}")
         
-        except MinecraftLaunchError as e:
-            logger.error(f"Launch failed: {e}")
-            self.status_bar.set_status("Error al lanzar el juego", "error")
-            messagebox.showerror("Error", str(e))
         except Exception as e:
-            logger.error(f"Unexpected error during launch: {e}")
+            logger.error(f"Unexpected error: {e}")
             messagebox.showerror("Error", f"Unexpected error: {str(e)}")
     
     def _on_version_installed(self, version: str) -> None:

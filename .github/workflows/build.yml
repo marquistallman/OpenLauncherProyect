@@ -1,0 +1,155 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build'
+        required: false
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build:
+    name: Build Release
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+      
+      - name: Cache pip packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov black flake8
+      
+      - name: Run tests
+        run: |
+          pytest tests/ -v --cov=src --cov-report=xml
+      
+      - name: Run linting
+        run: |
+          flake8 src/ main.py --count --select=E9,F63,F7,F82 --show-source --statistics
+          black src/ main.py --check --diff || true
+      
+      - name: Create source distribution
+        run: |
+          python setup.py sdist bdist_wheel
+      
+      - name: Get version
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          else
+            VERSION=$(python setup.py --version 2>/dev/null || echo "2.0.0")
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+      
+      - name: Create release archive
+        run: |
+          mkdir -p freelauncher-${{ steps.version.outputs.version }}
+          cp -r src/ freelauncher-${{ steps.version.outputs.version }}/
+          cp main.py freelauncher-${{ steps.version.outputs.version }}/
+          cp requirements.txt freelauncher-${{ steps.version.outputs.version }}/
+          cp docker-compose.yml freelauncher-${{ steps.version.outputs.version }}/
+          cp Dockerfile freelauncher-${{ steps.version.outputs.version }}/
+          cp README.md freelauncher-${{ steps.version.outputs.version }}/
+          cp LICENSE freelauncher-${{ steps.version.outputs.version }}/
+          cp scripts/install.ps1 freelauncher-${{ steps.version.outputs.version }}/
+          
+          zip -r freelauncher-${{ steps.version.outputs.version }}.zip freelauncher-${{ steps.version.outputs.version }}/
+          tar -czf freelauncher-${{ steps.version.outputs.version }}.tar.gz freelauncher-${{ steps.version.outputs.version }}/
+      
+      - name: Build and push Docker image
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: docker/setup-buildx-action@v2
+      
+      - name: Docker Build
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: false
+          tags: |
+            freelauncher:${{ steps.version.outputs.version }}
+            freelauncher:latest
+      
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            dist/*
+            freelauncher-${{ steps.version.outputs.version }}.zip
+            freelauncher-${{ steps.version.outputs.version }}.tar.gz
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+  docker-build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    permissions:
+      packages: write
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      
+      - name: Get version
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+      
+      - name: Build Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: false
+          tags: |
+            freelauncher:${{ steps.version.outputs.version }}
+            freelauncher:latest
+          outputs: type=docker,dest=/tmp/image.tar
+      
+      - name: Upload image artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-image
+          path: /tmp/image.tar

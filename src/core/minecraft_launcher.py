@@ -203,45 +203,37 @@ class MinecraftVersionManager:
             logger.info(f"Starting download of Minecraft {version} with {loader_lower}")
             
             if loader_lower == "vanilla":
-                # Download vanilla version
-                minecraft_launcher_lib.install.install_minecraft_version(
-                    version,
-                    self.minecraft_dir
-                )
+                # Download vanilla version directly
+                logger.info(f"Installing vanilla Minecraft {version}")
+                minecraft_launcher_lib.install.install_minecraft_version(version, self.minecraft_dir)
+                logger.info(f"Successfully installed vanilla {version}")
             
             elif loader_lower == "forge":
-                # Try to download Forge
+                # Download Forge version
                 try:
-                    # First, install vanilla to have the base version
-                    minecraft_launcher_lib.install.install_minecraft_version(
-                        version,
-                        self.minecraft_dir
-                    )
-                    
-                    # Then try to install Forge using minecraft_launcher_lib if available
-                    if hasattr(minecraft_launcher_lib, 'forge'):
-                        minecraft_launcher_lib.forge.install_forge_version(
-                            version,
-                            self.minecraft_dir,
-                            loader_version
-                        )
-                    else:
-                        logger.warning("Forge installation not directly supported, installing vanilla only")
-                
+                    logger.info(f"Installing Forge for Minecraft {version}")
+                    # Use find_forge_version to get the correct Forge version
+                    forge_ver = minecraft_launcher_lib.forge.find_forge_version(version)
+                    minecraft_launcher_lib.forge.install_forge_version(forge_ver, self.minecraft_dir)
+                    logger.info(f"Successfully installed Forge for {version}")
                 except Exception as forge_error:
-                    logger.warning(f"Could not install Forge directly: {forge_error}")
-                    # Fall back to vanilla only
-                    logger.info("Falling back to vanilla installation")
+                    logger.error(f"Forge installation failed: {forge_error}")
+                    raise
             
             elif loader_lower == "fabric":
-                # First, install vanilla to have the base version
-                minecraft_launcher_lib.install.install_minecraft_version(
-                    version,
-                    self.minecraft_dir
-                )
-                
-                # Then install Fabric loader
-                self._download_fabric(version, loader_version)
+                # Install Fabric using the library method
+                try:
+                    logger.info(f"Installing Fabric for Minecraft {version}")
+                    minecraft_launcher_lib.fabric.install_fabric(version, self.minecraft_dir)
+                    
+                    # Also download Fabric API mod
+                    logger.info("Downloading Fabric API...")
+                    self._download_fabric_api(version)
+                    
+                    logger.info(f"Successfully installed Fabric for {version}")
+                except Exception as fabric_error:
+                    logger.error(f"Fabric installation failed: {fabric_error}")
+                    raise
             
             else:
                 logger.error(f"Unknown loader type: {loader}")
@@ -254,59 +246,56 @@ class MinecraftVersionManager:
             logger.error(f"Error downloading version {version}: {e}")
             return False
     
-    def _download_fabric(self, minecraft_version: str, fabric_version: Optional[str] = None) -> None:
+    def _download_fabric_api(self, minecraft_version: str) -> None:
         """
-        Download and install Fabric loader
+        Download Fabric API mod from Modrinth
         
         Args:
-            minecraft_version: Minecraft version
-            fabric_version: Specific Fabric version (optional)
+            minecraft_version: Minecraft version for the API
         """
         try:
-            logger.info(f"Installing Fabric for Minecraft {minecraft_version}")
+            # Check internet connection first
+            requests.get("https://api.modrinth.com", timeout=5)
             
-            # Get latest Fabric loader if not specified
-            if not fabric_version:
-                try:
-                    response = requests.get(
-                        f"https://meta.fabricmc.net/v2/versions/loader/{minecraft_version}",
-                        timeout=10
-                    )
-                    response.raise_for_status()
-                    loaders = response.json()
-                    if loaders and len(loaders) > 0:
-                        fabric_version = loaders[0]['loader']['version']
-                        logger.info(f"Using latest Fabric loader: {fabric_version}")
-                    else:
-                        raise Exception(f"No Fabric versions available for Minecraft {minecraft_version}")
-                except requests.RequestException as e:
-                    logger.error(f"Failed to get Fabric versions: {e}")
-                    raise Exception(f"Could not connect to Fabric metadata server: {e}")
+            # Create mods directory
+            mods_dir = os.path.join(self.minecraft_dir, "mods")
+            os.makedirs(mods_dir, exist_ok=True)
             
-            # Get game profile
-            game_profile_response = requests.get(
-                f"https://meta.fabricmc.net/v2/versions/loader/{minecraft_version}/{fabric_version}/profile/json",
-                timeout=10
-            )
-            game_profile_response.raise_for_status()
+            # Get Fabric API from Modrinth (P7dR8mSH is the Fabric API project ID)
+            url = "https://api.modrinth.com/v2/project/P7dR8mSH/version"
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
             
-            # Save the profile
-            profile_path = os.path.join(
-                self.minecraft_dir,
-                'versions',
-                f'{minecraft_version}-fabric'
-            )
-            os.makedirs(profile_path, exist_ok=True)
+            fabric_api_url = None
+            filename = None
             
-            profile_file = os.path.join(profile_path, f'{minecraft_version}-fabric.json')
-            with open(profile_file, 'w') as f:
-                f.write(game_profile_response.text)
+            # Find the version that matches our Minecraft version
+            for v in response.json():
+                if minecraft_version in v.get("game_versions", []):
+                    fabric_api_url = v["files"][0]["url"]
+                    filename = v["files"][0]["filename"]
+                    break
             
-            logger.info(f"Fabric installation completed for {minecraft_version}")
+            if fabric_api_url and filename:
+                logger.info(f"Downloading Fabric API: {filename}")
+                fabric_api_path = os.path.join(mods_dir, filename)
+                
+                # Download the file
+                api_response = requests.get(fabric_api_url, timeout=30)
+                api_response.raise_for_status()
+                
+                with open(fabric_api_path, "wb") as f:
+                    f.write(api_response.content)
+                
+                logger.info(f"Fabric API installed: {filename}")
+            else:
+                logger.warning(f"Fabric API not available for Minecraft {minecraft_version}")
         
+        except requests.ConnectionError:
+            logger.error("No internet connection to download Fabric API")
         except Exception as e:
-            logger.error(f"Error installing Fabric: {e}")
-            raise
+            logger.warning(f"Could not download Fabric API: {e}")
+    
     
     def get_forge_versions(self, minecraft_version: str) -> List[str]:
         """
@@ -418,7 +407,7 @@ class MinecraftLauncher:
         Args:
             profile: Profile with username and RAM settings
             version: Minecraft version to launch
-            on_close: Optional callback when game closes
+            on_close: Optional callback when game closes (deprecated, not used)
         
         Raises:
             MinecraftLaunchError: If launch fails
@@ -439,19 +428,12 @@ class MinecraftLauncher:
                 options
             )
             
-            # Execute
-            process = subprocess.Popen(
-                command,
-                cwd=self.minecraft_dir,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
-            )
+            logger.info(f"Running command: {' '.join(command)}")
             
-            # Execute callback when close is requested
-            if on_close:
-                on_close()
+            # Execute game - launcher stays open
+            subprocess.run(command, cwd=self.minecraft_dir)
             
-            logger.info(f"Minecraft process started with PID {process.pid}")
+            logger.info("Minecraft process completed")
         
         except Exception as e:
             logger.error(f"Error launching Minecraft: {e}")

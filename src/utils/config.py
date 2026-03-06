@@ -26,17 +26,22 @@ class Config:
     WINDOW_HEIGHT = 800
     WINDOW_TITLE = "FreeLauncher - Modern Minecraft Launcher"
     
-    # Theme colors
+    # Theme colors - Modern gradient
     COLORS = {
-        "primary": "#2c3e50",
-        "secondary": "#34495e",
-        "accent": "#3498db",
-        "success": "#27ae60",
-        "success_hover": "#219d54",
-        "danger": "#e74c3c",
-        "warning": "#f39c12",
+        "primary": "#1a1f2e",
+        "secondary": "#252d3d",
+        "tertiary": "#2d3748",
+        "accent": "#667eea",
+        "accent_light": "#764ba2",
+        "success": "#48bb78",
+        "success_hover": "#38a169",
+        "danger": "#f56565",
+        "warning": "#ed8936",
         "white": "#ffffff",
-        "grey": "#95a5a6"
+        "grey": "#a0aec0",
+        "grey_dark": "#4a5568",
+        "surface": "#edf2f7",
+        "border": "#e2e8f0"
     }
     
     # Default values
