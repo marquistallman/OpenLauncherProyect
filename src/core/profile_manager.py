@@ -30,6 +30,9 @@ class Profile:
             raise InvalidProfileError("Profile name must be a non-empty string")
         if not isinstance(self.username, str):
             raise InvalidProfileError("Username must be a string")
+        # empty username allowed for default profile only
+        if not self.username and self.name != Config.DEFAULT_PROFILE_NAME:
+            raise InvalidProfileError("Username cannot be empty")
         if not isinstance(self.ram, int) or self.ram < 1:
             raise InvalidProfileError("RAM must be a positive integer")
     
