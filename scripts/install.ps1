@@ -37,19 +37,49 @@ Write-Success "✅ $pythonVersion encontrado"
 
 # Check Java installation
 Write-Info "`n2️⃣  Verificando Java..."
+
 $java = Get-Command java.exe -ErrorAction SilentlyContinue
+
 if (-not $java) {
-    Write-Error "⚠️  Java no está instalado. Minecraft lo necesita."
-    Write-Info "Descárgalo desde: https://www.oracle.com/java/technologies/downloads/"
-    Write-Info "❓ ¿Continuar de todas formas? (S/n)"
-    $response = Read-Host
-    if ($response -ne "S" -and $response -ne "s") {
+
+    Write-Info "Java no encontrado. Descargando Java 21..."
+
+    $javaUrl = "https://api.adoptium.net/v3/installer/latest/21/ga/windows/x64/jdk/hotspot/normal/eclipse"
+    $javaInstaller = "$env:TEMP\java21.msi"
+
+    try {
+
+        Invoke-WebRequest -Uri $javaUrl -OutFile $javaInstaller
+
+        Write-Info "Instalando Java 21..."
+
+        Start-Process msiexec.exe -ArgumentList "/i `"$javaInstaller`" /quiet /norestart" -Wait
+
+        Remove-Item $javaInstaller -Force
+
+    } catch {
+
+        Write-Error "Error descargando o instalando Java"
         exit 1
     }
-} else {
-    $javaVersion = & java -version 2>&1
-    Write-Success "✅ Java encontrado"
+
+    # refrescar PATH
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" +
+                [System.Environment]::GetEnvironmentVariable("Path","User")
+
+    $java = Get-Command java.exe -ErrorAction SilentlyContinue
+
+    if (-not $java) {
+        Write-Error "Java no se pudo instalar correctamente"
+        exit 1
+    }
+
+    Write-Success "Java 21 instalado correctamente"
 }
+
+$javaVersion = & java -version 2>&1
+Write-Success "Java detectado:"
+Write-Host $javaVersion
 
 # Create installation directory
 Write-Info "`n3️⃣  Creando directorio de instalación..."
@@ -113,7 +143,7 @@ cd "$InstallPath"
 python main.py %*
 "@
 
-$batFile = Join-Path $InstallPath "launchar.bat"
+$batFile = Join-Path $InstallPath "launcher.bat"
 $launcherScript | Out-File -FilePath $batFile -Encoding ASCII
 Write-Success "✅ Script de lanzamiento creado"
 
@@ -142,7 +172,7 @@ if ($CreateDesktopShortcut) {
     $shortcut = $shell.CreateShortcut($shortcutPath)
     $shortcut.TargetPath = $batFile
     $shortcut.WorkingDirectory = $InstallPath
-    $shortcut.IconLocation = (Join-Path $InstallPath "icon.ico"), 0
+    $shortcut.IconLocation = "$(Join-Path $InstallPath 'icon.ico'),0"
     $shortcut.Description = "Modern Minecraft Launcher"
     $shortcut.Save()
     
