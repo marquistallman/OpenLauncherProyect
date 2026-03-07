@@ -14,29 +14,29 @@ function Write-Info { Write-Host $args -ForegroundColor Cyan }
 
 # Check if running as administrator
 if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    Write-Error "❌ Este script debe ejecutarse como administrador"
+    Write-Error "Este script debe ejecutarse como administrador"
     Write-Info "Por favor, ejecuta PowerShell como administrador y vuelve a intentar"
     exit 1
 }
 
-Write-Info "🎮 FreeLauncher - Instalador"
+Write-Info "FreeLauncher - Instalador"
 Write-Info "============================`n"
 
 # Check Python installation
-Write-Info "1️⃣  Verificando Python..."
+Write-Info "1. Verificando Python..."
 $python = Get-Command python.exe -ErrorAction SilentlyContinue
 if (-not $python) {
-    Write-Error "❌ Python no está instalado o no está en PATH"
+    Write-Error "Python no está instalado o no está en PATH"
     Write-Info "Descárgalo desde: https://www.python.org/downloads/"
     Write-Info "Asegúrate de marcar 'Add Python to PATH' durante la instalación"
     exit 1
 }
 
 $pythonVersion = & python --version 2>&1
-Write-Success "✅ $pythonVersion encontrado"
+Write-Success "$pythonVersion encontrado"
 
 # Check Java installation
-Write-Info "`n2️⃣  Verificando Java..."
+Write-Info "`n2. Verificando Java..."
 
 $java = Get-Command java.exe -ErrorAction SilentlyContinue
 
@@ -82,16 +82,16 @@ Write-Success "Java detectado:"
 Write-Host $javaVersion
 
 # Create installation directory
-Write-Info "`n3️⃣  Creando directorio de instalación..."
+Write-Info "`n3. Creando directorio de instalación..."
 if (-not (Test-Path $InstallPath)) {
     New-Item -ItemType Directory -Force -Path $InstallPath | Out-Null
-    Write-Success "✅ Directorio creado: $InstallPath"
+    Write-Success "Directorio creado: $InstallPath"
 } else {
-    Write-Info "ℹ️  Directorio ya existe: $InstallPath"
+    Write-Info "Directorio ya existe: $InstallPath"
 }
 
 # Download release from GitHub
-Write-Info "`n4️⃣  Descargando FreeLauncher..."
+Write-Info "`n4. Descargando FreeLauncher..."
 
 if ($Version -eq "latest") {
     $apiUrl = "https://api.github.com/repos/marquistallman/OpenLauncherProyect/releases/latest"
@@ -105,7 +105,7 @@ try {
     # Find the asset that is a zip file, to make it more robust
     $zipAsset = $release.assets | Where-Object { $_.name -like '*.zip' } | Select-Object -First 1
     if (-not $zipAsset) {
-        Write-Error "❌ No se encontró un archivo .zip en la release de GitHub."
+        Write-Error "No se encontró un archivo .zip en la release de GitHub."
         exit 1
     }
     $downloadUrl = $zipAsset.browser_download_url
@@ -114,58 +114,55 @@ try {
     Write-Info "Descargando: $($release.tag_name)"
     
     Invoke-WebRequest -Uri $downloadUrl -OutFile $zipPath
-    Write-Success "✅ Descarga completada"
+    Write-Success "Descarga completada"
     
     # Extract zip
-    Write-Info "`n5️⃣  Extrayendo archivos..."
+    Write-Info "`n5. Extrayendo archivos..."
     Expand-Archive -Path $zipPath -DestinationPath $InstallPath -Force
     Remove-Item $zipPath
-    Write-Success "✅ Archivos extraídos"
+    Write-Success "Archivos extraídos"
     
 } catch {
-    Write-Error "❌ Error durante la descarga: $_"
+    Write-Error "Error durante la descarga: $_"
     exit 1
 }
 
 # Install Python dependencies
-Write-Info "`n6️⃣  Instalando dependencias de Python..."
+Write-Info "`n6. Instalando dependencias de Python..."
 $reqFile = Join-Path $InstallPath "requirements.txt"
 if (Test-Path $reqFile) {
     & python -m pip install -r $reqFile --quiet
-    Write-Success "✅ Dependencias instaladas"
+    Write-Success "Dependencias instaladas"
 } else {
-    Write-Error "❌ No se encontró requirements.txt"
+    Write-Error "No se encontró requirements.txt"
 }
 
 # Create launcher script
-Write-Info "`n7️⃣  Creando script de lanzamiento..."
+Write-Info "`n7. Creando script de lanzamiento..."
 $launcherScript = @"
 `@echo off
 cd "$InstallPath"
 python main.py %*
 "@
 
-$batFile = Join-Path $InstallPath "launcher.bat"
+$batFile = Join-Path $InstallPath 'launcher.bat'
 $launcherScript | Out-File -FilePath $batFile -Encoding utf8
-Write-Success "✅ Script de lanzamiento creado"
+Write-Success "Script de lanzamiento creado"
 
 # Add to PATH
-Write-Info "`n8️⃣  Agregando FreeLauncher a PATH..."
+Write-Info "`n8. Agregando FreeLauncher a PATH..."
 $currentPath = [Environment]::GetEnvironmentVariable("Path", "Machine")
 if ($currentPath -notlike "*$InstallPath*") {
-    [Environment]::SetEnvironmentVariable(
-        "Path",
-        "$currentPath;$InstallPath",
-        "Machine"
-    )
-    Write-Success "✅ Agregado a PATH"
+    $newPath = $currentPath + ';' + $InstallPath
+    [Environment]::SetEnvironmentVariable('Path', $newPath, 'Machine')
+    Write-Success "Agregado a PATH"
 } else {
-    Write-Info "ℹ️  Ya está en PATH"
+    Write-Info "Ya está en PATH"
 }
 
 # Create desktop shortcut
 if ($CreateDesktopShortcut) {
-    Write-Info "`n9️⃣  Creando atajo en Escritorio..."
+    Write-Info "`n9. Creando atajo en Escritorio..."
     
     $desktopPath = [Environment]::GetFolderPath("Desktop")
     $shortcutPath = Join-Path $desktopPath "FreeLauncher.lnk"
@@ -184,11 +181,11 @@ if ($CreateDesktopShortcut) {
     
     $shortcut.Save()
     
-    Write-Success "✅ Atajo creado en: $shortcutPath"
+    Write-Success "Atajo creado en: $shortcutPath"
 }
 
 # Final message
-Write-Success "`n✨ ¡Instalación completada!`n"
+Write-Success "`n¡Instalación completada!`n"
 Write-Info "Para iniciar FreeLauncher:"
 Write-Info "  • Haz doble clic en el atajo del Escritorio"
 Write-Info "  • O ejecuta: freelauncher (requiere abrir una nueva terminal)"
