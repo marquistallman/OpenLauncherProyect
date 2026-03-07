@@ -12,11 +12,20 @@ function Write-Success { Write-Host $args -ForegroundColor Green }
 function Write-Error { Write-Host $args -ForegroundColor Red }
 function Write-Info { Write-Host $args -ForegroundColor Cyan }
 
+# Asegurar TLS 1.2 para descargas (GitHub requiere esto)
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
 # Check if running as administrator
 if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    Write-Error "Este script debe ejecutarse como administrador"
-    Write-Info "Por favor, ejecuta PowerShell como administrador y vuelve a intentar"
-    exit 1
+    Write-Info "Solicitando permisos de administrador..."
+    $scriptUrl = "https://raw.githubusercontent.com/marquistallman/OpenLauncherProyect/main/scripts/install.ps1"
+    try {
+        Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iex ((New-Object System.Net.WebClient).DownloadString('$scriptUrl'))`""
+        exit
+    } catch {
+        Write-Error "No se pudo elevar permisos. Ejecuta PowerShell como Administrador manualmente."
+        exit 1
+    }
 }
 
 Write-Info "FreeLauncher - Instalador"
@@ -104,27 +113,70 @@ try {
     
     # Find the asset that is a zip file, to make it more robust
     $zipAsset = $release.assets | Where-Object { $_.name -like '*.zip' } | Select-Object -First 1
-    if (-not $zipAsset) {
+    $isSourceCode = $false
+
+    if ($zipAsset) {
+        $downloadUrl = $zipAsset.browser_download_url
+        Write-Info "Descargando: $($zipAsset.name)"
+    } elseif ($release.zipball_url) {
+        Write-Info "⚠️ No se encontró asset binario. Descargando código fuente..."
+        $downloadUrl = $release.zipball_url
+        $isSourceCode = $true
+    } else {
         Write-Error "No se encontró un archivo .zip en la release de GitHub."
         exit 1
     }
-    $downloadUrl = $zipAsset.browser_download_url
     
     $zipPath = Join-Path $InstallPath "freelauncher.zip"
-    Write-Info "Descargando: $($release.tag_name)"
     
     Invoke-WebRequest -Uri $downloadUrl -OutFile $zipPath
     Write-Success "Descarga completada"
     
     # Extract zip
     Write-Info "`n5. Extrayendo archivos..."
-    Expand-Archive -Path $zipPath -DestinationPath $InstallPath -Force
+    if ($isSourceCode) {
+        $tempExtractPath = Join-Path $InstallPath "temp_extract"
+        Expand-Archive -Path $zipPath -DestinationPath $tempExtractPath -Force
+        $innerFolder = Get-ChildItem -Path $tempExtractPath -Directory | Select-Object -First 1
+        if ($innerFolder) { Get-ChildItem -Path $innerFolder.FullName | Move-Item -Destination $InstallPath -Force }
+        Remove-Item $tempExtractPath -Recurse -Force
+    } else {
+        Expand-Archive -Path $zipPath -DestinationPath $InstallPath -Force
+    }
     Remove-Item $zipPath
     Write-Success "Archivos extraídos"
     
 } catch {
-    Write-Error "Error durante la descarga: $_"
-    exit 1
+    # Si falla la descarga de la release (ej. 404 Not Found), intentar descargar el código fuente
+    if ("$_" -match "404" -or "$_" -match "Not Found") {
+        Write-Info "⚠️ No se encontró una release oficial. Descargando código fuente (main)..."
+        $downloadUrl = "https://github.com/marquistallman/OpenLauncherProyect/archive/refs/heads/main.zip"
+        $zipPath = Join-Path $InstallPath "source.zip"
+        
+        try {
+            Invoke-WebRequest -Uri $downloadUrl -OutFile $zipPath
+            
+            # Extraer en carpeta temporal para manejar la estructura del zip de GitHub (Repo-main)
+            $tempExtractPath = Join-Path $InstallPath "temp_extract"
+            Expand-Archive -Path $zipPath -DestinationPath $tempExtractPath -Force
+            
+            # Mover archivos de la subcarpeta al directorio de instalación
+            $innerFolder = Get-ChildItem -Path $tempExtractPath -Directory | Select-Object -First 1
+            if ($innerFolder) {
+                Get-ChildItem -Path $innerFolder.FullName | Move-Item -Destination $InstallPath -Force
+            }
+            
+            Remove-Item $zipPath -Force
+            Remove-Item $tempExtractPath -Recurse -Force
+            Write-Success "Código fuente descargado y extraído"
+        } catch {
+            Write-Error "Error descargando el código fuente: $_"
+            exit 1
+        }
+    } else {
+        Write-Error "Error durante la descarga: $_"
+        exit 1
+    }
 }
 
 # Install Python dependencies
