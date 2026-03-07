@@ -140,7 +140,7 @@ if (Test-Path $reqFile) {
 # Create launcher script
 Write-Info "`n7️⃣  Creando script de lanzamiento..."
 $launcherScript = @"
-@echo off
+`@echo off
 cd "$InstallPath"
 python main.py %*
 "@
