@@ -101,12 +101,14 @@ if ($Version -eq "latest") {
 
 try {
     $release = Invoke-RestMethod -Uri $apiUrl -Headers @{"Accept"="application/vnd.github.v3+json"}
-    $downloadUrl = $release.assets[0].browser_download_url
     
-    if (-not $downloadUrl) {
-        Write-Error "❌ No se encontró release disponible"
+    # Find the asset that is a zip file, to make it more robust
+    $zipAsset = $release.assets | Where-Object { $_.name -like '*.zip' } | Select-Object -First 1
+    if (-not $zipAsset) {
+        Write-Error "❌ No se encontró un archivo .zip en la release de GitHub."
         exit 1
     }
+    $downloadUrl = $zipAsset.browser_download_url
     
     $zipPath = Join-Path $InstallPath "freelauncher.zip"
     Write-Info "Descargando: $($release.tag_name)"
@@ -144,7 +146,7 @@ python main.py %*
 "@
 
 $batFile = Join-Path $InstallPath "launcher.bat"
-$launcherScript | Out-File -FilePath $batFile -Encoding ASCII
+$launcherScript | Out-File -FilePath $batFile -Encoding utf8
 Write-Success "✅ Script de lanzamiento creado"
 
 # Add to PATH
@@ -172,8 +174,14 @@ if ($CreateDesktopShortcut) {
     $shortcut = $shell.CreateShortcut($shortcutPath)
     $shortcut.TargetPath = $batFile
     $shortcut.WorkingDirectory = $InstallPath
-    $shortcut.IconLocation = "$(Join-Path $InstallPath 'icon.ico'),0"
     $shortcut.Description = "Modern Minecraft Launcher"
+    
+    # Set icon only if it exists
+    $iconFile = Join-Path $InstallPath 'icon.ico'
+    if (Test-Path $iconFile) {
+        $shortcut.IconLocation = "$iconFile,0"
+    }
+    
     $shortcut.Save()
     
     Write-Success "✅ Atajo creado en: $shortcutPath"
@@ -183,7 +191,7 @@ if ($CreateDesktopShortcut) {
 Write-Success "`n✨ ¡Instalación completada!`n"
 Write-Info "Para iniciar FreeLauncher:"
 Write-Info "  • Haz doble clic en el atajo del Escritorio"
-Write-Info "  • O ejecuta: freelauncher"
+Write-Info "  • O ejecuta: freelauncher (requiere abrir una nueva terminal)"
 Write-Info "  • O abre: $InstallPath\main.py`n"
 
 Write-Success "¡Diviértete lanzando Minecraft!"
