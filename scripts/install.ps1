@@ -33,15 +33,77 @@ Write-Info "============================`n"
 
 # Check Python installation
 Write-Info "1. Verificando Python..."
-$python = Get-Command python.exe -ErrorAction SilentlyContinue
-if (-not $python) {
-    Write-Error "Python no está instalado o no está en PATH"
-    Write-Info "Descárgalo desde: https://www.python.org/downloads/"
-    Write-Info "Asegúrate de marcar 'Add Python to PATH' durante la instalación"
-    exit 1
+
+# Detect a working Python, ignoring the Windows Store stub
+$pythonCmd = $null
+$pythonVersion = $null
+foreach ($cmd in @("python", "python3", "py")) {
+    $cmdPath = Get-Command $cmd -ErrorAction SilentlyContinue
+    if ($cmdPath) {
+        $result = & $cmd --version 2>&1
+        if ($LASTEXITCODE -eq 0 -and "$result" -notmatch "was not found" -and "$result" -notmatch "Microsoft Store") {
+            $pythonCmd = $cmd
+            $pythonVersion = "$result"
+            break
+        }
+    }
 }
 
-$pythonVersion = & python --version 2>&1
+if (-not $pythonCmd) {
+    Write-Info "Python no encontrado. Intentando instalar automáticamente..."
+
+    $installed = $false
+
+    # Attempt 1: winget
+    $winget = Get-Command winget -ErrorAction SilentlyContinue
+    if ($winget -and -not $installed) {
+        Write-Info "Instalando Python con winget..."
+        try {
+            winget install --id Python.Python.3 --silent --accept-package-agreements --accept-source-agreements 2>&1 | Out-Null
+            $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" +
+                        [System.Environment]::GetEnvironmentVariable("Path","User")
+            $result = & python --version 2>&1
+            if ($LASTEXITCODE -eq 0 -and "$result" -notmatch "was not found" -and "$result" -notmatch "Microsoft Store") {
+                $pythonCmd = "python"
+                $pythonVersion = "$result"
+                $installed = $true
+                Write-Success "Python instalado correctamente via winget"
+            }
+        } catch { }
+    }
+
+    # Attempt 2: download installer from python.org
+    if (-not $installed) {
+        Write-Info "Descargando Python desde python.org..."
+        $pythonInstallerUrl = "https://www.python.org/ftp/python/3.12.0/python-3.12.0-amd64.exe"
+        $pythonInstaller = "$env:TEMP\python_installer.exe"
+        try {
+            Invoke-WebRequest -Uri $pythonInstallerUrl -OutFile $pythonInstaller
+            Write-Info "Instalando Python..."
+            Start-Process $pythonInstaller -ArgumentList "/quiet InstallAllUsers=1 PrependPath=1" -Wait
+            Remove-Item $pythonInstaller -Force
+            $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" +
+                        [System.Environment]::GetEnvironmentVariable("Path","User")
+            $result = & python --version 2>&1
+            if ($LASTEXITCODE -eq 0 -and "$result" -notmatch "was not found" -and "$result" -notmatch "Microsoft Store") {
+                $pythonCmd = "python"
+                $pythonVersion = "$result"
+                $installed = $true
+                Write-Success "Python instalado correctamente"
+            }
+        } catch {
+            Write-Error "Error descargando o instalando Python: $_"
+        }
+    }
+
+    if (-not $installed) {
+        Write-Error "No se pudo instalar Python automáticamente."
+        Write-Info "Descárgalo manualmente desde: https://www.python.org/downloads/"
+        Write-Info "Asegúrate de marcar 'Add Python to PATH' durante la instalación"
+        exit 1
+    }
+}
+
 Write-Success "$pythonVersion encontrado"
 
 # Check Java installation
@@ -183,7 +245,7 @@ try {
 Write-Info "`n6. Instalando dependencias de Python..."
 $reqFile = Join-Path $InstallPath "requirements.txt"
 if (Test-Path $reqFile) {
-    & python -m pip install -r $reqFile --quiet
+    & $pythonCmd -m pip install -r $reqFile --quiet
     Write-Success "Dependencias instaladas"
 } else {
     Write-Error "No se encontró requirements.txt"
@@ -194,7 +256,7 @@ Write-Info "`n7. Creando script de lanzamiento..."
 $launcherScript = @"
 `@echo off
 cd "$InstallPath"
-python main.py %*
+$pythonCmd main.py %*
 "@
 
 $batFile = Join-Path $InstallPath 'launcher.bat'
